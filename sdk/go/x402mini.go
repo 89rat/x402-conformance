@@ -117,7 +117,9 @@ func addressFromPub(pub *btcec.PublicKey) (string, error) {
 func SignDigest32(digest []byte, priv []byte) (string, error) {
 	key, _ := btcec.PrivKeyFromBytes(priv)
 	sig := becdsa.Sign(key, digest)
-	rs := sig.Serialize() // r||s, 64 bytes
+	var rs [64]byte // compact r||s — Serialize() is DER, so pack the scalars directly
+	sig.R.PutBytesUnchecked(rs[:32])
+	sig.S.PutBytesUnchecked(rs[32:64])
 	dbg := fmt.Sprintf("dbg: len(rs)=%d len(digest)=%d\n", len(rs), len(digest))
 	fmt.Fprint(os.Stderr, dbg)
 	want, err := PrivateKeyToAddress(priv)
