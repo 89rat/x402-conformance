@@ -129,7 +129,7 @@ func SignDigest32(digest []byte, priv []byte) (string, error) {
 	}
 	firstErr := error(nil)
 	for _, v := range []byte{27, 28} {
-		cand := append(append([]byte{}, rs...), v)
+		cand := append(append([]byte{}, rs[:]...), v)
 		pub, wasCompressed, err := becdsa.RecoverCompact(cand, digest)
 		if err != nil {
 			if firstErr == nil {
