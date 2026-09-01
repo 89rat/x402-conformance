@@ -139,7 +139,7 @@ func SignDigest32(digest []byte, priv []byte) (string, error) {
 		}
 		addr, err := addressFromPub(pub)
 		if err == nil && strings.EqualFold(addr, want) {
-			return hex.EncodeToString(rs) + fmt.Sprintf("%02x", v) // Ethereum layout: r||s||v
+			return hex.EncodeToString(rs[:]) + fmt.Sprintf("%02x", v) // Ethereum layout: r||s||v
 		}
 		_ = wasCompressed
 	}
