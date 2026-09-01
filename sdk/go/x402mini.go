@@ -22,7 +22,6 @@ import (
 
 	"github.com/btcsuite/btcd/btcec/v2"
 	becdsa "github.com/btcsuite/btcd/btcec/v2/ecdsa"
-	_sig "github.com/btcsuite/btcd/btcec/v2/ecdsa/signature"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -127,7 +126,7 @@ func SignDigest32(digest []byte, priv []byte) (string, error) {
 	}
 	for _, v := range []byte{27, 28} {
 		cand := append(append([]byte{}, rs...), v)
-		pub, _, err := _sig.RecoverCompact(cand, digest)
+		pub, _, err := becdsa.RecoverCompact(cand, digest)
 		if err != nil {
 			continue
 		}
@@ -153,7 +152,7 @@ func VerifyReceipt(receipt map[string]any) (map[string]any, error) {
 	if err != nil || len(sig) != 65 {
 		return nil, fmt.Errorf("signature must be 65 bytes hex")
 	}
-	pub, _, err := _sig.RecoverCompact(sig, digest)
+	pub, _, err := becdsa.RecoverCompact(sig, digest)
 	if err != nil {
 		return nil, err
 	}
