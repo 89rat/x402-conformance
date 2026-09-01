@@ -13,6 +13,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math"
 	"math/big"
 	"os"
 	"net/http"
@@ -146,13 +147,22 @@ func SignDigest32(digest []byte, priv []byte) (string, error) {
 	return "", fmt.Errorf("could not produce recoverable signature (firstErr=%v)", firstErr)
 }
 
+// canonField stringifies a receipt field the way the signer wrote it — JSON
+// decoding yields float64, which must print as plain integers, not 1.78e+09.
+func canonField(v any) string {
+	if f, ok := v.(float64); ok && f == math.Trunc(f) {
+		return strconv.FormatInt(int64(f), 10)
+	}
+	return fmt.Sprint(v)
+}
+
 // VerifyReceipt verifies an XDR-1 receipt: digest = raw keccak256 over the
 // canonical string (NOT EIP-191-wrapped); recovers and compares the signer.
 func VerifyReceipt(receipt map[string]any) (map[string]any, error) {
 	fields := []string{"v", "tool", "tool_version", "input_hash", "output_hash", "payer", "recipient", "amount", "nonce", "ts", "tier"}
 	parts := make([]string, len(fields))
 	for i, f := range fields {
-		parts[i] = fmt.Sprint(receipt[f])
+		parts[i] = canonField(receipt[f])
 	}
 	digest := keccak256([]byte(strings.Join(parts, "|")))
 	sigHex := strings.TrimPrefix(fmt.Sprint(receipt["signature"]), "0x")
@@ -255,7 +265,7 @@ func PayAndCall(base, path string, body map[string]any, privateKeyHex string) (m
 	}
 	out := map[string]any{"data": paid}
 	if paid["_status"] == float64(200) {
-		out["status"] = 200
+		out["status"] = float64(200)
 		if receipt, ok := paid["receipt"].(map[string]any); ok {
 			ver, err := VerifyReceipt(receipt)
 			if err != nil {
