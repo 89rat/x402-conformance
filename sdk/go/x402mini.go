@@ -115,10 +115,7 @@ func addressFromPub(pub *btcec.PublicKey) (string, error) {
 // SignDigest32 returns a 65-byte recoverable signature hex (r||s||v, v=27/28).
 func SignDigest32(digest []byte, priv []byte) (string, error) {
 	key, _ := btcec.PrivKeyFromBytes(priv)
-	sig, err := becdsa.Sign(key, digest)
-	if err != nil {
-		return "", err
-	}
+	sig := becdsa.Sign(key, digest)
 	rs := sig.Serialize() // r||s, 64 bytes
 	want, err := PrivateKeyToAddress(priv)
 	if err != nil {
