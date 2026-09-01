@@ -129,8 +129,8 @@ func SignDigest32(digest []byte, priv []byte) (string, error) {
 	}
 	firstErr := error(nil)
 	for _, v := range []byte{27, 28} {
-		cand := append(append([]byte{}, rs[:]...), v)
-		pub, wasCompressed, err := becdsa.RecoverCompact(cand, digest)
+		compact := append([]byte{v}, rs[:]...) // btcec compact layout: [v][r||s]
+		pub, wasCompressed, err := becdsa.RecoverCompact(compact, digest)
 		if err != nil {
 			if firstErr == nil {
 				firstErr = err
@@ -139,7 +139,7 @@ func SignDigest32(digest []byte, priv []byte) (string, error) {
 		}
 		addr, err := addressFromPub(pub)
 		if err == nil && strings.EqualFold(addr, want) {
-			return hex.EncodeToString(cand), nil
+			return hex.EncodeToString(rs) + fmt.Sprintf("%02x", v) // Ethereum layout: r||s||v
 		}
 		_ = wasCompressed
 	}
@@ -160,7 +160,8 @@ func VerifyReceipt(receipt map[string]any) (map[string]any, error) {
 	if err != nil || len(sig) != 65 {
 		return nil, fmt.Errorf("signature must be 65 bytes hex")
 	}
-	pub, _, err := becdsa.RecoverCompact(sig, digest)
+	compact := append([]byte{sig[64]}, sig[:64]...) // Ethereum r||s||v -> btcec [v][r||s]
+	pub, _, err := becdsa.RecoverCompact(compact, digest)
 	if err != nil {
 		return nil, err
 	}
