@@ -44,7 +44,7 @@ Transfer is observed — self-reported "works" is not a measurement.
 
 ## Measured with this suite (third-party services)
 
-Run 2026-09-01 with `src/runner.mjs` (free-tier-only, no payments submitted, one run per service). Scores reflect THIS suite's checks as of v1.0.0 — any service can re-run `npx github:89rat/x402-conformance <url>` against itself and improve; the row below is a snapshot, not a verdict.
+Snapshot extended 2026-09-01 (8 third-party services measured) with `src/runner.mjs` (free-tier-only, no payments submitted, one run per service). Scores reflect THIS suite's checks as of v1.0.0 — any service can re-run `npx github:89rat/x402-conformance <url>` against itself and improve; the row below is a snapshot, not a verdict.
 
 | Service | Score | Measured |
 |---|---|---|
@@ -55,5 +55,8 @@ Run 2026-09-01 with `src/runner.mjs` (free-tier-only, no payments submitted, one
 | Kaisha (kaisha-api.hp-vladic.workers.dev) | 41/100 | 2026-09-01 |
 | Tinstop (tinstop.com) | 31/100 | 2026-09-01 |
 | API Witchcraft (apiwitchcraft.duckdns.org) | 29/100 | 2026-09-01 |
+| Langston Search (langston.click) | 41/100 | 2026-09-01 |
+| Strale (strale.dev) | 33/100 | 2026-09-01 |
+| AfaAgent (afaagent-x402-api.storm-fly.workers.dev) | 29/100 | 2026-09-01 |
 
 Common gaps behind the sub-100 scores (measured): no `/mcp` surface (initialize fails), 402 challenges accepted non-JSON `X-PAYMENT` payloads without a coded error, missing `/.well-known/mcp.json`-style machine manifests, and `openapi.json`/discovery absences. These are the checks the ecosystem most commonly lacks today — i.e., where the conformance bar is currently set by very few implementations.
