@@ -1,0 +1,75 @@
+# x402 v1 — ABNF grammar for the HTTP payment headers
+#
+# Normative grammar per RFC 5234 (ABNF) / RFC 7405 (case sensitivity).
+# Header NAMES are case-insensitive per RFC 9110 §5.1; JSON field names
+# inside payloads are case-SENSITIVE and MUST match exactly as given here.
+# Base64 is RFC 4648 §4 (standard alphabet, WITH padding). No whitespace
+# is allowed inside base64 values. Encoded header values SHOULD stay
+# <= 16384 octets after base64 decoding to survive intermediary limits
+# (common CDN/proxy caps: Cloudflare 16 KiB, nginx default 8 KiB
+# large_client_header_buffers, Apache 8190 bytes).
+
+; ---------- request direction ----------
+
+x-payment-header        = "X-PAYMENT" ":" OWS base64payload OWS
+base64payload           = 1*base64char [ pad / padpad ]
+base64char              = ALPHA / DIGIT / "+" / "/"
+pad                     = "="
+padpad                  = "=="
+
+; JSON payload decoded from base64payload (UTF-8). Field names case-sensitive.
+; payment-payload   = "{" ws '"x402Version"' ws ":" ws "1" ws "," ws
+;                     '"scheme"' ws ":" ws dq "exact" dq ws "," ws
+;                     '"network"' ws ":" ws network-id ws "," ws
+;                     '"payload"' ws ":" ws voucher ws "}"
+; voucher           = "{" ws '"signature"' ws ":" ws dq 130*130HEXDIG dq ws "," ws
+;                     '"authorization"' ws ":" ws authorization ws "}"
+; authorization     = "{" ws '"from"' ws ":" ws address ws "," ws
+;                     '"to"' ws ":" ws address ws "," ws
+;                     '"value"' ws ":" ws decstr ws "," ws
+;                     '"validAfter"' ws ":" ws decstr ws "," ws
+;                     '"validBefore"' ws ":" ws decstr ws "," ws
+;                     '"nonce"' ws ":" ws bytes32hex ws "}"
+; address           = dq ("0x" 40HEXDIG) dq          ; EIP-55 checksum RECOMMENDED
+; bytes32hex        = dq ("0x" 64HEXDIG) dq          ; single-use; MUST be unique per voucher
+; decstr            = dq 1*DIGIT dq                  ; uint256 as decimal STRING (no exponent)
+; network-id        = dq "base" dq / caip2           ; v1 name form; CAIP-2 form in v2
+; caip2             = dq 3*44(caip2-char) dq         ; e.g. "eip155:8453"
+; caip2-char        = ALPHA / DIGIT / "-" / ":" / "_" / "." / lowercase
+; signature         = 65 bytes: r(32) || s(32) || v(1), v in {27,28}, hex, 0x-prefixed
+; s-value           ; MUST be low-s (s <= n/2) — malleable (high-s) signatures MAY be rejected
+
+; ---------- response direction ----------
+
+payment-required-header = "PAYMENT-REQUIRED" ":" OWS base64payload OWS
+; v2 challenge: base64 of the full 402 body (accepts[] incl. CAIP-2 network ids).
+; Servers SHOULD emit BOTH the header (v2) and the legacy JSON body (v1)
+; on a 402 so either generation of client can proceed.
+
+payment-options-header  = "PAYMENT-OPTIONS" ":" OWS json-array OWS
+; Legacy (v1): plain-JSON accepts[] array, same object shape as above.
+
+x-payment-response-hdr  = "X-PAYMENT-RESPONSE" ":" OWS base64payload OWS
+; Settlement record returned by the resource server after successful settle:
+; at minimum { "success": boolean, "network", "transaction" (<32-byte tx hash hex>) }.
+
+; ---------- shared tokens ----------
+
+ALPHA                   = %x41-5A / %x61-7A
+DIGIT                   = %x30-39
+HEXDIG                  = DIGIT / "A"-"F" / "a"-"f"
+dq                      = %x22
+OWS                     = *( SP / HTAB )
+
+; ---------- semantics (normative summary) ----------
+
+; 1. nonce: single-use. Servers MUST reject reuse with a coded error
+;    (REPLAY) and MUST check replay BEFORE amount/price validation.
+; 2. validBefore: unix seconds; expired vouchers MUST be rejected (EXPIRED).
+;    maxTimeoutSeconds in the challenge bounds the client's validity window.
+; 3. value: MUST equal maxAmountRequired exactly in the "exact" scheme
+;    (over- and under-payment rejected, AMOUNT_MISMATCH).
+; 4. error responses MUST use the coded taxonomy (x402-errors-v1.json),
+;    never free text alone.
+; 5. Intermediaries: 402 responses MUST include Cache-Control: no-store.
+;    Proxies MUST forward the named headers unmodified (end-to-end headers).

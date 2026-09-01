@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://code402.dev/schema/x402-402-response-v1.json",
+  "title": "x402 402 Payment Required Response",
+  "description": "The body of an HTTP 402 response from an x402-compliant server. This schema is normative for x402 v1. Implementations MUST produce output that validates against this schema. Fields not defined here are extension points and MUST be ignored by conformant clients.",
+  "type": "object",
+  "required": ["asset", "eip712_domain", "nonce", "recipient", "network", "price", "x402_version"],
+  "properties": {
+    "x402_version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Protocol version. MUST be 1 for x402 v1."
+    },
+    "asset": {
+      "type": "string",
+      "description": "Human-readable asset symbol (e.g., 'USDC')."
+    },
+    "nonce": {
+      "type": "string",
+      "pattern": "^0x[0-9a-fA-F]{64}$",
+      "description": "Single-use 32-byte nonce for the payment authorization. MUST be unique per challenge."
+    },
+    "recipient": {
+      "type": "string",
+      "pattern": "^0x[0-9a-fA-F]{40}$",
+      "description": "The address that receives the payment."
+    },
+    "network": {
+      "type": "object",
+      "required": ["chain_id", "name"],
+      "properties": {
+        "chain_id": { "type": "integer", "description": "EIP-155 chain ID (e.g., 8453 for Base)." },
+        "name": { "type": "string", "description": "Human-readable network name (e.g., 'base')." }
+      }
+    },
+    "price": {
+      "type": "object",
+      "required": ["amount", "asset", "decimals", "token_address"],
+      "properties": {
+        "amount": { "type": "string", "pattern": "^[0-9]+$", "description": "Amount in smallest token unit (atomic), as a decimal string." },
+        "asset": { "type": "string", "description": "Asset symbol." },
+        "decimals": { "type": "integer", "description": "Token decimals (6 for USDC)." },
+        "token_address": { "type": "string", "pattern": "^0x[0-9a-fA-F]{40}$", "description": "ERC-20 token contract address." }
+      }
+    },
+    "eip712_domain": {
+      "type": "object",
+      "required": ["name", "version", "chainId", "verifyingContract"],
+      "properties": {
+        "name": { "type": "string", "description": "EIP-712 domain name (e.g., 'USD Coin')." },
+        "version": { "type": "string", "description": "EIP-712 domain version (e.g., '2')." },
+        "chainId": { "type": "integer", "description": "Chain ID for the signature." },
+        "verifyingContract": { "type": "string", "pattern": "^0x[0-9a-fA-F]{40}$", "description": "Token contract that verifies the EIP-3009 authorization." }
+      }
+    },
+    "expires_at": {
+      "type": "integer",
+      "description": "Unix timestamp after which this challenge is invalid."
+    },
+    "expires_at_rfc3339": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Human-readable expiration."
+    },
+    "settlement_mode": {
+      "type": "string",
+      "enum": ["facilitated_direct", "self_facilitated", "streaming"],
+      "description": "How the facilitator settles this payment."
+    },
+    "free_tier_remaining": {
+      "type": "integer",
+      "description": "Calls remaining in the free tier for this client. If > 0, the client may retry without payment."
+    },
+    "payment_intent_id": {
+      "type": "string",
+      "description": "Server-generated idempotency key for this payment request."
+    },
+    "request_id": {
+      "type": "string",
+      "description": "Alias for payment_intent_id."
+    },
+    "tool": {
+      "type": "string",
+      "description": "The tool or resource being paid for."
+    },
+    "proof": {
+      "type": "object",
+      "properties": {
+        "header": { "type": "string", "description": "The HTTP header name for the payment payload (e.g., 'X-PAYMENT')." },
+        "type": { "type": "string", "description": "The payment proof type (e.g., 'eip3009_voucher')." }
+      }
+    },
+    "status_url": {
+      "type": "string",
+      "description": "URL to poll for request status (for async settlements)."
+    }
+  }
+}

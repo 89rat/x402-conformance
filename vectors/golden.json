@@ -1,0 +1,132 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "chain_id": 8453,
+    "chain_name": "base",
+    "token_name": "USD Coin",
+    "token_version": "2",
+    "token_address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "token_decimals": 6,
+    "description": "Golden test vectors for x402 v1 EIP-3009 TransferWithAuthorization signing and receipt verification. Every conformant implementation MUST produce identical output for these inputs. Generated 2026-09-01 on the live rail.akrivis.in deployment. Signatures are RFC-6979 deterministic (@noble/curves 2.4.0, no extra entropy): re-signing the same inputs MUST reproduce them byte-for-byte. Signatures are RFC-6979 deterministic (@noble/curves 2.4.0, no extra entropy): re-signing the same inputs MUST reproduce them byte-for-byte."
+  },
+  "vectors": [
+    {
+      "id": "happy_path_1usdc",
+      "description": "Standard 1 USDC transferWithAuthorization, v=27",
+      "input": {
+        "private_key": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "from": "0x19e7e376e7c213b7e7e7e46cc70a5dd086daff2a",
+        "to": "0xc59c85e661d34084a7769f955d17fd38254a6235",
+        "value": "1000000",
+        "validAfter": "0",
+        "validBefore": "9999999999",
+        "nonce": "0x0000000000000000000000000000000000000000000000000000000000000001"
+      },
+      "domain": {
+        "name": "USD Coin",
+        "version": "2",
+        "chainId": 8453,
+        "verifyingContract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+      },
+      "expected": {
+        "note": "Fill in the signature produced by YOUR implementation. All conformant implementations MUST produce the same 65-byte (r,s,v) output for the same inputs.",
+        "signature": "0x2de55410b11b7cbfe0f40023b906c2b190f2bb2b507c5d695c0acf5bc36299a60ca0a4089dc7829d652431b9665fe0d02b71edef691a6b92281a05f989b161f41b",
+        "digest": "0xfb4d99a3877d0a63137cb263652538b9e0c9b0bcc581540520a1d0f0dcde474d",
+        "recover_check": "recovered signer MUST equal input.from"
+      }
+    },
+    {
+      "id": "min_amount",
+      "description": "Smallest non-zero transfer: 1 atomic unit (0.000001 USDC)",
+      "input": {
+        "private_key": "0x2222222222222222222222222222222222222222222222222222222222222222",
+        "from": "0x1563915e194d8cfba1943570603f7606a3115508",
+        "to": "0xc59c85e661d34084a7769f955d17fd38254a6235",
+        "value": "1",
+        "validAfter": "0",
+        "validBefore": "9999999999",
+        "nonce": "0x0000000000000000000000000000000000000000000000000000000000000002"
+      },
+      "domain": {
+        "name": "USD Coin",
+        "version": "2",
+        "chainId": 8453,
+        "verifyingContract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+      },
+      "expected": {
+        "signature": "0xfc36e85fb525a600def5f1891454044ec4e39f04bb9523273172a1fd697e7f661a2f413234c31858cc088c7e5f980def774d08e3525cc7d7dc217c6400c6cb711c",
+        "digest": "0x1be7eb13ee2c7712449708b07aa4bfbc80bbf65a70d494a7ed56297d7b7cfa9c",
+        "recover_check": "recovered signer MUST equal input.from"
+      }
+    },
+    {
+      "id": "max_value",
+      "description": "Maximum uint256 value — tests no overflow in the signing path",
+      "input": {
+        "private_key": "0x3333333333333333333333333333333333333333333333333333333333333333",
+        "from": "0x5cbdd86a2fa8dc4bddd8a8f69dba48572eec07fb",
+        "to": "0xc59c85e661d34084a7769f955d17fd38254a6235",
+        "value": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+        "validAfter": "0",
+        "validBefore": "9999999999",
+        "nonce": "0x0000000000000000000000000000000000000000000000000000000000000003"
+      },
+      "domain": {
+        "name": "USD Coin",
+        "version": "2",
+        "chainId": 8453,
+        "verifyingContract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+      },
+      "expected": {
+        "signature": "0x9a59acbde3e5dbee8e4e13bfb628f4b64654dfe01e1d7401ecc7885816f970ac10a82f23555921f59cbedf7d17404ec09eb9c4ad44c4ff8f3d57b5adc274349d1c",
+        "digest": "0x41ffc359a212fa7b83a0db4ddf75af39e984fc41f06170c2b9782115bd46c5ee",
+        "recover_check": "recovered signer MUST equal input.from"
+      }
+    }
+  ],
+  "negative_vectors": [
+    {
+      "id": "expired_voucher",
+      "description": "validBefore in the past — MUST be rejected with EXPIRED",
+      "input": {
+        "private_key": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "from": "0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF",
+        "to": "0xc59c85e661d34084a7769f955d17fd38254a6235",
+        "value": "1000000",
+        "validAfter": "0",
+        "validBefore": "1",
+        "nonce": "0x0000000000000000000000000000000000000000000000000000000000000010"
+      },
+      "expected_error": "EXPIRED"
+    },
+    {
+      "id": "wrong_recipient",
+      "description": "Voucher pays a different address than the declared recipient — MUST be rejected with RECIPIENT_MISMATCH",
+      "input": {
+        "private_key": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "from": "0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF",
+        "to": "0x0000000000000000000000000000000000000001",
+        "value": "1000000",
+        "validAfter": "0",
+        "validBefore": "9999999999",
+        "nonce": "0x0000000000000000000000000000000000000000000000000000000000000011"
+      },
+      "expected_error": "RECIPIENT_MISMATCH"
+    },
+    {
+      "id": "tampered_signature",
+      "description": "Signature is valid for a different message — MUST be rejected with BAD_SIGNATURE",
+      "input": {
+        "private_key": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "from": "0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF",
+        "to": "0xc59c85e661d34084a7769f955d17fd38254a6235",
+        "value": "1000000",
+        "validAfter": "0",
+        "validBefore": "9999999999",
+        "nonce": "0x0000000000000000000000000000000000000000000000000000000000000012",
+        "signature_override": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001b"
+      },
+      "expected_error": "BAD_SIGNATURE"
+    }
+  ]
+}

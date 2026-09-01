@@ -1,0 +1,40 @@
+name: conformance
+
+on:
+  schedule:
+    - cron: "17 * * * *" # hourly, live measurement
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Self-test (zero-dependency verifier)
+        run: node src/reference-verifier.mjs
+
+      - name: Measure live x402 services
+        run: |
+          node src/runner.mjs https://rail.akrivis.in | tee /tmp/rail.txt
+          node src/runner.mjs https://code402.dev | tee /tmp/code402.txt
+
+      - name: Write score badge
+        run: node scripts/score.mjs /tmp/rail.txt /tmp/code402.txt
+
+      - name: Commit scores
+        run: |
+          git config user.name "conformance-bot"
+          git config user.email "89rat@users.noreply.github.com"
+          git add docs/scores.json docs/badge.json
+          git diff --cached --quiet || git commit -m "conformance scores @ $(date -u +%FT%TZ)"
+          git push

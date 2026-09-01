@@ -1,0 +1,38 @@
+{
+  "name": "x402-conformance",
+  "version": "1.0.0",
+  "description": "x402 v1 conformance suite: protocol runner, zero-dependency reference verifier (keccak256 + secp256k1 recovery), golden EIP-3009 vectors, JSON Schema + error taxonomy, ABNF grammar for payment headers.",
+  "type": "module",
+  "main": "src/runner.mjs",
+  "bin": {
+    "x402-conformance": "./src/cli.mjs",
+    "x402-reference-verifier": "./src/reference-verifier.mjs",
+    "x402-sandbox": "./src/sandbox.mjs"
+  },
+  "scripts": {
+    "test": "node src/reference-verifier.mjs",
+    "conform": "node src/runner.mjs",
+    "sandbox": "node src/sandbox.mjs"
+  },
+  "keywords": [
+    "x402",
+    "conformance",
+    "http-402",
+    "eip3009",
+    "base",
+    "usdc",
+    "mcp",
+    "compliance"
+  ],
+  "license": "MIT",
+  "files": [
+    "src/",
+    "schema/",
+    "vectors/",
+    "abnf/",
+    "docs/"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}

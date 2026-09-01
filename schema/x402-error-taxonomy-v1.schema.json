@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://code402.dev/schema/x402-error-taxonomy-v1.json",
+  "title": "x402 Error Taxonomy",
+  "description": "Normative error codes for x402 v1 implementations. Every error response MUST include a machine-readable code from this taxonomy. Free-text messages are supplementary and MUST NOT be used for programmatic decisions.",
+  "type": "object",
+  "required": ["errors"],
+  "properties": {
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "http_status", "description", "retryable", "phase"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]+$",
+            "description": "Machine-readable error code. Stable across versions."
+          },
+          "http_status": {
+            "type": "integer",
+            "description": "The HTTP status code this error is returned with."
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable explanation."
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the client SHOULD retry the same request (possibly after backoff)."
+          },
+          "phase": {
+            "type": "string",
+            "enum": ["challenge", "signature", "settlement", "network", "tool"],
+            "description": "Which phase of the x402 flow produced this error."
+          }
+        }
+      }
+    }
+  }
+}

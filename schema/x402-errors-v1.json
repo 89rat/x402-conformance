@@ -1,0 +1,21 @@
+{
+  "errors": [
+    { "code": "PARSE_ERROR", "http_status": 400, "description": "Request body is not valid JSON.", "retryable": false, "phase": "challenge" },
+    { "code": "INPUT_SCHEMA_INVALID", "http_status": 400, "description": "Input does not match the tool's declared input schema.", "retryable": false, "phase": "challenge" },
+    { "code": "TOOL_NOT_FOUND", "http_status": 404, "description": "The requested tool does not exist on this server.", "retryable": false, "phase": "challenge" },
+    { "code": "MALFORMED_PAYMENT", "http_status": 402, "description": "X-PAYMENT header is not valid base64-encoded JSON or does not match the expected payload shape.", "retryable": false, "phase": "signature" },
+    { "code": "BAD_SIGNATURE", "http_status": 402, "description": "The EIP-3009 signature does not recover to the 'from' address in the voucher.", "retryable": false, "phase": "signature" },
+    { "code": "PRICE_MISMATCH", "http_status": 402, "description": "The voucher value does not match the current tool price. Re-fetch the 402 challenge for the live quote.", "retryable": true, "phase": "signature" },
+    { "code": "RECIPIENT_MISMATCH", "http_status": 402, "description": "The voucher 'to' address does not match the server's declared recipient.", "retryable": false, "phase": "signature" },
+    { "code": "EXPIRED", "http_status": 402, "description": "The voucher's validBefore timestamp is in the past. Re-fetch the 402 challenge for a fresh window.", "retryable": true, "phase": "signature" },
+    { "code": "NOT_YET_VALID", "http_status": 402, "description": "The voucher's validAfter timestamp is in the future.", "retryable": true, "phase": "signature" },
+    { "code": "REPLAY", "http_status": 402, "description": "The voucher nonce has already been used. Generate a fresh nonce and re-sign.", "retryable": false, "phase": "signature" },
+    { "code": "SETTLEMENT_FAILED", "http_status": 402, "description": "The facilitator submitted the transfer on-chain but it reverted (e.g., insufficient balance). Re-fetch the challenge and retry with a funded wallet.", "retryable": true, "phase": "settlement" },
+    { "code": "SETTLEMENT_UNAVAILABLE", "http_status": 502, "description": "The facilitator is unreachable or returned a server error. This is transient — retry with backoff.", "retryable": true, "phase": "settlement" },
+    { "code": "SETTLEMENT_NOT_CONFIGURED", "http_status": 503, "description": "Mainnet settlement requires a facilitator URL, which is not configured on this deployment.", "retryable": false, "phase": "settlement" },
+    { "code": "UPSTREAM_RPC_UNAVAILABLE", "http_status": 503, "description": "The upstream RPC or external API used by this tool is unreachable. The call was not charged — retry later.", "retryable": true, "phase": "tool" },
+    { "code": "NOT_CONFIGURED", "http_status": 503, "description": "A required secret or environment variable is not set on this deployment.", "retryable": false, "phase": "tool" },
+    { "code": "RATE_LIMITED", "http_status": 429, "description": "Too many requests. Retry after the backoff period.", "retryable": true, "phase": "network" },
+    { "code": "INTERNAL_ERROR", "http_status": 500, "description": "An unexpected server error occurred. This is a bug — please report it.", "retryable": true, "phase": "tool" }
+  ]
+}
