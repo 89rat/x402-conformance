@@ -121,18 +121,25 @@ func SignDigest32(digest []byte, priv []byte) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	firstErr := error(nil)
 	for _, v := range []byte{27, 28} {
 		cand := append(append([]byte{}, rs...), v)
-		pub, _, err := becdsa.RecoverCompact(cand, digest)
+		pub, wasCompressed, err := becdsa.RecoverCompact(cand, digest)
 		if err != nil {
+			if firstErr == nil {
+				firstErr = err
+			}
 			continue
 		}
 		addr, err := addressFromPub(pub)
 		if err == nil && strings.EqualFold(addr, want) {
 			return hex.EncodeToString(cand), nil
 		}
+		_ = wasCompressed
+		fmt.Fprintf(os.Stderr, "debug: v=%d recovered=%s want=%s
+", v, addr, want)
 	}
-	return "", fmt.Errorf("could not produce recoverable signature")
+	return "", fmt.Errorf("could not produce recoverable signature (firstErr=%v)", firstErr)
 }
 
 // VerifyReceipt verifies an XDR-1 receipt: digest = raw keccak256 over the
