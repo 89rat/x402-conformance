@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"os"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -117,6 +118,8 @@ func SignDigest32(digest []byte, priv []byte) (string, error) {
 	key, _ := btcec.PrivKeyFromBytes(priv)
 	sig := becdsa.Sign(key, digest)
 	rs := sig.Serialize() // r||s, 64 bytes
+	dbg := fmt.Sprintf("dbg: len(rs)=%d len(digest)=%d\n", len(rs), len(digest))
+	fmt.Fprint(os.Stderr, dbg)
 	want, err := PrivateKeyToAddress(priv)
 	if err != nil {
 		return "", err
