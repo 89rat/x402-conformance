@@ -28,10 +28,15 @@ function s(group, name, note) { skip++; results.push({ group, name, status: "SKI
 function w(group, name, note) { warn++; results.push({ group, name, status: "WARN", note: note || "" }); process.stdout.write(`  ⚠️ ${group}/${name}${note ? ` (${note})` : ""}\n`); }
 
 async function req(path, { method = "GET", body, headers = {} } = {}) {
-  const r = await fetch(BASE + path, { method, headers: { "content-type": "application/json", ...headers }, body: body === undefined ? undefined : JSON.stringify(body) });
-  const txt = await r.text();
-  let b; try { b = JSON.parse(txt); } catch { b = txt; }
-  return { s: r.status, b, h: Object.fromEntries(r.headers), txt };
+  try {
+    const r = await fetch(BASE + path, { method, headers: { "content-type": "application/json", ...headers }, body: body === undefined ? undefined : JSON.stringify(body) });
+    const txt = await r.text();
+    let b; try { b = JSON.parse(txt); } catch { b = txt; }
+    return { s: r.status, b, h: Object.fromEntries(r.headers), txt };
+  } catch (e) {
+    // never throw: an unreachable target must produce failures, not a crash
+    return { s: 0, b: null, h: {}, txt: String(e?.message || e) };
+  }
 }
 
 // unfunded throwaway payer (safe: can never settle)
