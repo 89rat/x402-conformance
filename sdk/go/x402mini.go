@@ -136,8 +136,6 @@ func SignDigest32(digest []byte, priv []byte) (string, error) {
 			return hex.EncodeToString(cand), nil
 		}
 		_ = wasCompressed
-		fmt.Fprintf(os.Stderr, "debug: v=%d recovered=%s want=%s
-", v, addr, want)
 	}
 	return "", fmt.Errorf("could not produce recoverable signature (firstErr=%v)", firstErr)
 }
