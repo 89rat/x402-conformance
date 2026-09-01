@@ -15,6 +15,9 @@ node src/runner.mjs https://any-x402-service.example
 
 # or straight from this repo with npx
 npx github:89rat/x402-conformance https://any-x402-service.example
+
+# local replay of the full paid exchange (zero funds) — the "x402 dev" CLI
+npx github:89rat/x402-conformance dev
 ```
 
 Zero dependencies (Node ≥ 18 builtins only). The runner only ever spends the target service's **free tier** — it never signs or submits a payment.

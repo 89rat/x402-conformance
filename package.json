@@ -1,6 +1,6 @@
 {
   "name": "x402-conformance",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "x402 v1 conformance suite: protocol runner, zero-dependency reference verifier (keccak256 + secp256k1 recovery), golden EIP-3009 vectors, JSON Schema + error taxonomy, ABNF grammar for payment headers.",
   "type": "module",
   "main": "src/runner.mjs",
