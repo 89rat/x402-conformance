@@ -15,7 +15,6 @@ import (
 	"fmt"
 	"math"
 	"math/big"
-	"os"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -122,8 +121,6 @@ func SignDigest32(digest []byte, priv []byte) (string, error) {
 	r, s := sig.R(), sig.S()
 	r.PutBytesUnchecked(rs[:32])
 	s.PutBytesUnchecked(rs[32:64])
-	dbg := fmt.Sprintf("dbg: len(rs)=%d len(digest)=%d\n", len(rs), len(digest))
-	fmt.Fprint(os.Stderr, dbg)
 	want, err := PrivateKeyToAddress(priv)
 	if err != nil {
 		return "", err
