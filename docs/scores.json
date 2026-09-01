@@ -2,11 +2,11 @@
   "results": [
     {
       "label": "rail.akrivis.in",
-      "score": "100/100",
-      "pass": 19,
-      "fail": 0,
-      "skip": 1,
-      "measured_at": "2026-09-01T06:51:24.012Z"
+      "score": "91/100",
+      "pass": 20,
+      "fail": 2,
+      "skip": 0,
+      "measured_at": "2026-09-01T06:55:22.293Z"
     },
     {
       "label": "code402.dev",
@@ -14,7 +14,7 @@
       "pass": 20,
       "fail": 2,
       "skip": 0,
-      "measured_at": "2026-09-01T06:51:24.013Z"
+      "measured_at": "2026-09-01T06:55:22.293Z"
     }
   ]
 }
