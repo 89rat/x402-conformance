@@ -108,7 +108,7 @@ func PrivateKeyToAddress(priv []byte) (string, error) {
 }
 
 func addressFromPub(pub *btcec.PublicKey) (string, error) {
-	un := pub.SerialiseUncompressed() // 65 bytes, prefix 0x04
+	un := pub.SerializeUncompressed() // 65 bytes, prefix 0x04
 	return "0x" + hex.EncodeToString(keccak256(un[1:])[12:]), nil
 }
 
