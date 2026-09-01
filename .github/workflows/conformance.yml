@@ -10,6 +10,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: conformance
+  cancel-in-progress: true
+
 jobs:
   measure:
     runs-on: ubuntu-latest
@@ -37,4 +41,10 @@ jobs:
           git config user.email "89rat@users.noreply.github.com"
           git add docs/scores.json docs/badge.json
           git diff --cached --quiet || git commit -m "conformance scores @ $(date -u +%FT%TZ)"
-          git push
+          ok=0
+          for i in 1 2 3; do
+            git pull --rebase=true origin main >/dev/null 2>&1 || true
+            if git push; then ok=1; break; fi
+            sleep 5
+          done
+          [ "$ok" = 1 ] || echo "::warning::push raced; scores will land on the next run"

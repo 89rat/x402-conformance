@@ -132,10 +132,13 @@ export function eip3009Digest(domain, auth) {
 }
 
 // ---------- XDR-1 receipt ----------
-const eip191 = (m) => keccak256(cat(te.encode("\x19Ethereum Signed Message:\n" + m.length), te.encode(m)));
+// Canonical digest = keccak256 over the UTF-8 canonical string itself, NOT
+// EIP-191-wrapped. This matches the canonical published in the services'
+// /.well-known/mcp.json ("keccak256 over `v|tool|...|tier`") and the reference
+// workers. (EIP-191 wrapping is reserved for wallet-binding attestations.)
 export function verifyReceipt(receipt) {
   const canon = [receipt.v, receipt.tool, receipt.tool_version, receipt.input_hash, receipt.output_hash, receipt.payer, receipt.recipient, receipt.amount, receipt.nonce, receipt.ts, receipt.tier].join("|");
-  const digest = hex(eip191(canon));
+  const digest = hex(keccak256(te.encode(canon)));
   const signer = recoverAddress(digest, receipt.signature);
   return { signer, ok: signer.toLowerCase() === String(receipt.signer).toLowerCase() };
 }

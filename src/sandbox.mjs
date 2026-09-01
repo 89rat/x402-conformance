@@ -103,7 +103,8 @@ const server = http.createServer((req, res) => {
       usedNonces.add(a.nonce);
       // mock-settle: deterministic pseudo tx hash from the nonce
       const tx = "0x" + hex(keccak256(hb(a.nonce)));
-      // XDR-1 receipt signed by the sandbox key; canon + EIP-191 digest must
+      // XDR-1 receipt signed by the sandbox key; digest = RAW keccak256 over
+      // the UTF-8 canonical string (same as the reference workers), and must
       // match verifyReceipt() in reference-verifier.mjs byte-for-byte
       const receipt = {
         v: 1, tool: "sandbox-validate", tool_version: "1.0.0",
@@ -114,8 +115,7 @@ const server = http.createServer((req, res) => {
         signer: sandboxAddr,
       };
       const canon = [receipt.v, receipt.tool, receipt.tool_version, receipt.input_hash, receipt.output_hash, receipt.payer, receipt.recipient, receipt.amount, receipt.nonce, receipt.ts, receipt.tier].join("|");
-      const eip191 = keccak256(new TextEncoder().encode("\x19Ethereum Signed Message:\n" + canon.length + canon));
-      receipt.signature = signDigest(hex(eip191), sandboxKey, sandboxAddr);
+      receipt.signature = signDigest(hex(keccak256(new TextEncoder().encode(canon))), sandboxKey, sandboxAddr);
       res.writeHead(200, { "content-type": "application/json" });
       res.end(JSON.stringify({ result: { valid: true, tool: "sandbox-validate" }, settlement: { success: true, network: "ethereum:31337-local", transaction: tx }, receipt, authorization: { note: "local sandbox; no attestation" } }));
     } catch (e) {
