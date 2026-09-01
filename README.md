@@ -42,6 +42,10 @@ Score = passed checks / total. Every run prints a one-line verdict: `x402 CONFOR
 - **`docs/threat-model.md`** — replay, nonce reuse, signature malleability, facilitator trust. **No external audit has been performed** — stated, not implied.
 - **`docs/interop-matrix.md`** — client × server × facilitator cells, marked measured vs unmeasured.
 
+## Clean-room client SDKs
+
+Three independently implemented paying-client SDKs — TypeScript, Python, Go — live in [`sdk/`](sdk/README.md). Each is written from the artifacts in this repo alone and is tested in CI against the embedded sandbox: full 402 → sign → retry → receipt-verify exchange, zero funds.
+
 ## Quickstarts
 
 Five runtimes, one identical x402 pattern (≤30 logical lines, pinned deps), in [`examples/quickstarts/`](examples/quickstarts/): TypeScript/Express, Next.js Edge, Python/FastAPI, Go `net/http`, Rust/`workers-rs`.

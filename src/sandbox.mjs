@@ -125,6 +125,15 @@ const server = http.createServer((req, res) => {
   });
 });
 
+// ---------- server-only mode (SDK testbed): SANDBOX_SERVER_ONLY=1 ----------
+// Keeps the embedded resource server running and prints SANDBOX_PORT=<n>
+// so external client SDKs (sdk/typescript, sdk/python, sdk/go) can replay
+// the full exchange against it in tests. Default behavior unchanged.
+if (process.env.SANDBOX_SERVER_ONLY) {
+  await new Promise((r) => server.listen(Number(process.env.SANDBOX_PORT || 0), "127.0.0.1", r));
+  console.log(`SANDBOX_PORT=${server.address().port}`);
+  setInterval(() => {}, 1 << 30);
+} else {
 // ---------- client: full header-exchange replay ----------
 const t0 = Date.now();
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
@@ -161,3 +170,4 @@ if (r.status !== 402 || rej.error !== "REPLAY") { console.error(`FAIL: replay no
 console.log(`[5] replay rejected with coded error REPLAY (${Math.floor((Date.now() - t0))}ms)`);
 server.close();
 console.log(`\nSANDBOX PASS — full x402 exchange replayed locally, time-to-first-payment ${Date.now() - t0}ms, zero funds`);
+}

@@ -1,0 +1,15 @@
+{
+  "name": "x402-mini-typescript",
+  "version": "1.0.0",
+  "description": "Clean-room x402 client SDK (TypeScript/ESM) — implementable from the conformance artifacts alone; tested against the embedded sandbox.",
+  "type": "module",
+  "main": "x402-mini.mjs",
+  "scripts": {
+    "test": "node test.mjs"
+  },
+  "dependencies": {
+    "@noble/curves": "^1.9.7",
+    "@noble/hashes": "^1.8.0"
+  },
+  "license": "MIT"
+}

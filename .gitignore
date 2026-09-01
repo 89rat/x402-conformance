@@ -1,2 +1,5 @@
 node_modules/
 *.tmp
+sdk/typescript/node_modules/
+sdk/python/_vendor/
+sdk/python/__pycache__/

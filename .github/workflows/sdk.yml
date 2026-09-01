@@ -1,0 +1,64 @@
+name: sdk
+
+on:
+  push:
+    branches: [main]
+    paths: ["sdk/**", "src/sandbox.mjs"]
+  pull_request:
+    paths: ["sdk/**", "src/sandbox.mjs"]
+  workflow_dispatch:
+
+concurrency:
+  group: sdk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install pinned deps
+        working-directory: sdk/typescript
+        run: npm install --no-save @noble/curves@1.9.7 @noble/hashes@1.8.0
+      - name: Run SDK test against sandbox
+        working-directory: sdk/typescript
+        run: node test.mjs
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pinned deps
+        run: pip install -r sdk/python/requirements.txt
+      - name: Run SDK test against sandbox
+        working-directory: sdk/python
+        run: python test_x402_mini.py
+
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Tidy modules
+        working-directory: sdk/go
+        run: go mod tidy
+      - name: Vet
+        working-directory: sdk/go
+        run: go vet ./...
+      - name: Run SDK test against sandbox
+        working-directory: sdk/go
+        run: go test -v ./...
