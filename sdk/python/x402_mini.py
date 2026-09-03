@@ -128,6 +128,35 @@ def _post(url: str, body: dict, headers: dict | None = None):
         return e.code, json.loads(e.read().decode())
 
 
+_TELEMETRY = {"enabled": False, "url": ""}
+
+
+def enable_telemetry(url: str, enabled: bool = True) -> None:
+    """Opt-in execution-metadata telemetry (feeds DIS-1). Default OFF, fails
+    silent, never carries payload content. See sdk/README.md."""
+    _TELEMETRY["enabled"] = bool(enabled)
+    _TELEMETRY["url"] = url or ""
+
+
+def _emit(host, path_hash, quoted, settled, status, receipt_ok) -> None:
+    if not (_TELEMETRY["enabled"] and _TELEMETRY["url"]):
+        return
+    p = {
+        "spec_version": "1.0.0", "endpoint_host": host, "endpoint_path_hash": path_hash,
+        "quoted_amount": quoted, "settled_amount": settled, "asset": "USDC",
+        "network": "eip155:8453", "status_code": status, "receipt_valid": receipt_ok,
+        "timestamp": int(time.time()),
+    }
+    try:
+        req = urllib.request.Request(
+            _TELEMETRY["url"], data=json.dumps(p).encode(),
+            headers={"content-type": "application/json"}, method="POST",
+        )
+        urllib.request.urlopen(req, timeout=2)
+    except Exception:
+        pass  # telemetry never blocks a payment
+
+
 def pay_and_call(base: str, path: str, body: dict, private_key: str) -> dict:
     priv = bytes.fromhex(private_key.removeprefix("0x"))
     from_addr = private_key_to_address(priv)
@@ -161,10 +190,13 @@ def pay_and_call(base: str, path: str, body: dict, private_key: str) -> dict:
 
     status, data = _post(base + path, body, {"x-payment": payload})
     if status != 200:
+        _emit(base, keccak256(path.encode()).hex()[:64], auth["value"], "0", status, False)
         return {"status": status, "data": data, "error": data.get("error", "paid call failed")}
     receipt = data.get("receipt") or data.get("result", {}).get("receipt")
+    ver = verify_receipt(receipt) if receipt else None
+    _emit(base, keccak256(path.encode()).hex()[:64], auth["value"], receipt.get("amount", "0") if receipt else "0", status, ver.get("ok", False) if ver else False)
     return {
         "status": status, "data": data, "receipt": receipt,
-        "verification": verify_receipt(receipt) if receipt else None,
+        "verification": ver,
         "settlement": data.get("settlement"),
     }

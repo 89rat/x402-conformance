@@ -181,6 +181,44 @@ func VerifyReceipt(receipt map[string]any) (map[string]any, error) {
 
 // PayAndCall performs the full x402 exchange against base+path for the given
 // JSON body, paying from the provided 32-byte secp256k1 private key (hex).
+// ---------- opt-in telemetry (DIS-1 price index) ----------
+// Execution metadata only, default OFF, fails silent. See sdk/README.md.
+type telemetryCfg struct {
+	enabled bool
+	url     string
+}
+
+var telemetry = telemetryCfg{enabled: false, url: ""}
+
+func EnableTelemetry(url string, enabled bool) {
+	telemetry = telemetryCfg{enabled: enabled, url: url}
+}
+
+func emitTelemetry(host, pathHash, quoted, settled string, status int, receiptOK bool) {
+	if !telemetry.enabled || telemetry.url == "" {
+		return
+	}
+	p := map[string]any{
+		"spec_version": "1.0.0", "endpoint_host": host, "endpoint_path_hash": pathHash,
+		"quoted_amount": quoted, "settled_amount": settled, "asset": "USDC",
+		"network": "eip155:8453", "status_code": status, "receipt_valid": receiptOK,
+		"timestamp": time.Now().Unix(),
+	}
+	raw, err := json.Marshal(p)
+	if err != nil {
+		return
+	}
+	req, err := http.NewRequest("POST", telemetry.url, bytes.NewReader(raw))
+	if err != nil {
+		return
+	}
+	req.Header.Set("content-type", "application/json")
+	client := &http.Client{Timeout: 2 * time.Second}
+	if resp, err := client.Do(req); err == nil {
+		_ = resp.Body.Close()
+	}
+}
+
 func PayAndCall(base, path string, body map[string]any, privateKeyHex string) (map[string]any, error) {
 	priv, err := hex.DecodeString(strings.TrimPrefix(privateKeyHex, "0x"))
 	if err != nil || len(priv) != 32 {
@@ -261,21 +299,30 @@ func PayAndCall(base, path string, body map[string]any, privateKeyHex string) (m
 		return nil, err
 	}
 	out := map[string]any{"data": paid}
+	pathHash := hex.EncodeToString(keccak256([]byte(path)))[:64]
 	if paid["_status"] == float64(200) {
 		out["status"] = float64(200)
+		var receiptOK bool
 		if receipt, ok := paid["receipt"].(map[string]any); ok {
 			ver, err := VerifyReceipt(receipt)
 			if err != nil {
 				return nil, err
 			}
+			receiptOK = ver["ok"] == true
 			out["receipt"] = receipt
 			out["verification"] = ver
 		}
+		settledAmount := "0"
+		if r, ok := paid["receipt"].(map[string]any); ok {
+			settledAmount = fmt.Sprint(r["amount"])
+		}
+		emitTelemetry(base, pathHash, auth["value"], settledAmount, 200, receiptOK)
 		if settlement, ok := paid["settlement"]; ok {
 			out["settlement"] = settlement
 		}
 		return out, nil
 	}
+	emitTelemetry(base, pathHash, auth["value"], "0", int(paid["_status"].(float64)), false)
 	out["status"] = paid["_status"]
 	if e, ok := paid["error"]; ok {
 		out["error"] = e

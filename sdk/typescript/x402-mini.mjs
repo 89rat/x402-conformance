@@ -75,8 +75,35 @@ function atobURIComponent(s) {
   return atob(b64);
 }
 
+// ---------- opt-in telemetry (DIS-1 price index) ----------
+// Strictly execution metadata, zero payload content. Default OFF. Fails silent
+// (fire-and-forget; registry errors never block the call). Only what we actually
+// measure is emitted — no invented latency/uptime fields. See sdk/README.md.
+let telemetry = { enabled: false, url: "" };
+export function enableTelemetry({ url, enabled = true }) {
+  telemetry = { enabled: !!enabled, url: url || "" };
+}
+function emitTelemetry(host, pathHash, quoted, settled, status, receiptOk) {
+  if (!telemetry.enabled || !telemetry.url) return;
+  const p = {
+    spec_version: "1.0.0",
+    endpoint_host: host,
+    endpoint_path_hash: pathHash,
+    quoted_amount: quoted,
+    settled_amount: settled,
+    asset: "USDC",
+    network: "eip155:8453",
+    status_code: status,
+    receipt_valid: receiptOk,
+    timestamp: Math.floor(Date.now() / 1000),
+  };
+  // fire-and-forget; swallow everything (telemetry never blocks a payment)
+  fetch(telemetry.url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(p) }).catch(() => {});
+}
+
 // ---------- main entry ----------
 export async function payAndCall({ base, path, body, privateKey /* 32-byte hex */ }) {
+  const t0 = telemetry.enabled ? Date.now() : 0;
   const key = typeof privateKey === "string" ? hb(privateKey) : privateKey;
   const from = privateKeyToAddress(key);
 
@@ -101,8 +128,12 @@ export async function payAndCall({ base, path, body, privateKey /* 32-byte hex *
 
   const second = await fetch(base + path, { method: "POST", headers: { "content-type": "application/json", "x-payment": xpayment }, body: JSON.stringify(body) });
   const data = await second.json();
-  if (second.status !== 200) return { status: second.status, data, error: data.error ?? "paid call failed" };
+  if (second.status !== 200) {
+    emitTelemetry(base, hex(keccak_256(te.encode(path))).slice(0, 64), auth.value, "0", second.status, false);
+    return { status: second.status, data, error: data.error ?? "paid call failed" };
+  }
   const receipt = data.receipt ?? data.result?.receipt ?? null;
   const verification = receipt ? verifyReceipt(receipt) : null;
+  emitTelemetry(base, hex(keccak_256(te.encode(path))).slice(0, 64), auth.value, receipt ? receipt.amount : "0", second.status, verification ? verification.ok : false);
   return { status: second.status, data, receipt, verification, settlement: data.settlement ?? null };
 }
