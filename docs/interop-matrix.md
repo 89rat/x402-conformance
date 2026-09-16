@@ -44,19 +44,21 @@ Transfer is observed — self-reported "works" is not a measurement.
 
 ## Measured with this suite (third-party services)
 
-Snapshot extended 2026-09-01 (8 third-party services measured) with `src/runner.mjs` (free-tier-only, no payments submitted, one run per service). Scores reflect THIS suite's checks as of v1.0.0 — any service can re-run `npx github:89rat/x402-conformance <url>` against itself and improve; the row below is a snapshot, not a verdict.
+Snapshot extended 2026-09-16 (8 third-party services re-measured with the tool-aware probe runner) with `src/runner.mjs` (free-tier-only, no payments submitted, one run per service). Scores reflect THIS suite's checks — any service can re-run `npx github:89rat/x402-conformance <url>` against itself and improve; the row below is a snapshot, not a verdict.
 
 | Service | Score | Measured |
 |---|---|---|
-| rail.akrivis.in (ours) | 100/100 | 2026-09-01 |
-| code402.dev (ours) | 100/100 | 2026-09-01 |
-| x402-seller (x402-seller-m8nx.onrender.com) | 41/100 | 2026-09-01 |
-| KR-DART Events (dartapi.ljaysk.com) | 41/100 | 2026-09-01 |
-| Kaisha (kaisha-api.hp-vladic.workers.dev) | 41/100 | 2026-09-01 |
-| Tinstop (tinstop.com) | 31/100 | 2026-09-01 |
-| API Witchcraft (apiwitchcraft.duckdns.org) | 29/100 | 2026-09-01 |
-| Langston Search (langston.click) | 41/100 | 2026-09-01 |
-| Strale (strale.dev) | 33/100 | 2026-09-01 |
-| AfaAgent (afaagent-x402-api.storm-fly.workers.dev) | 29/100 | 2026-09-01 |
+| rail.akrivis.in (ours) | 100/100 | 2026-09-16 |
+| code402.dev (ours) | 95/100 | 2026-09-16 |
+| x402-seller (x402-seller-m8nx.onrender.com) | 41/100 | 2026-09-16 |
+| KR-DART Events (dartapi.ljaysk.com) | 41/100 | 2026-09-16 |
+| Kaisha (kaisha-api.hp-vladic.workers.dev) | 41/100 | 2026-09-16 |
+| Tinstop (tinstop.com) | 31/100 | 2026-09-16 |
+| API Witchcraft (apiwitchcraft.duckdns.org) | 31/100 | 2026-09-16 |
+| Langston Search (langston.click) | 29/100 | 2026-09-16 |
+| Strale (strale.dev) | 33/100 | 2026-09-16 |
+| AfaAgent (afaagent-x402-api.storm-fly.workers.dev) | 29/100 | 2026-09-16 |
 
 Common gaps behind the sub-100 scores (measured): no `/mcp` surface (initialize fails), 402 challenges accepted non-JSON `X-PAYMENT` payloads without a coded error, missing `/.well-known/mcp.json`-style machine manifests, and `openapi.json`/discovery absences. These are the checks the ecosystem most commonly lacks today — i.e., where the conformance bar is currently set by very few implementations.
+
+Probe methodology (2026-09-16): the tool-execution probe is now tool-shape-aware — it tries each published tool with that tool's own example body (from the x402 manifest Bazaar info) or an input synthesized from its mcp.json inputSchema. A hardcoded iban body was only valid for iban-shaped tools and produced false 400s for receipt-verify and similar tools.

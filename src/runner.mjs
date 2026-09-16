@@ -21,11 +21,11 @@ const results = [];
 function t(group, name, cond, note) {
   const status = cond ? "PASS" : "FAIL";
   results.push({ group, name, status, note: note || "" });
-  if (cond) { pass++; process.stdout.write(`  ✅ ${group}/${name}\n`); }
-  else { fail++; process.stdout.write(`  ❌ ${group}/${name}${note ? ` (${note})` : ""}\n`); }
+  if (cond) { pass++; (JSON_MODE ? process.stderr : process.stdout).write(`  ✅ ${group}/${name}\n`); }
+  else { fail++; (JSON_MODE ? process.stderr : process.stdout).write(`  ❌ ${group}/${name}${note ? ` (${note})` : ""}\n`); }
 }
-function s(group, name, note) { skip++; results.push({ group, name, status: "SKIP", note: note || "" }); process.stdout.write(`  ⏭️ ${group}/${name}${note ? ` (${note})` : ""}\n`); }
-function w(group, name, note) { warn++; results.push({ group, name, status: "WARN", note: note || "" }); process.stdout.write(`  ⚠️ ${group}/${name}${note ? ` (${note})` : ""}\n`); }
+function s(group, name, note) { skip++; results.push({ group, name, status: "SKIP", note: note || "" }); (JSON_MODE ? process.stderr : process.stdout).write(`  ⏭️ ${group}/${name}${note ? ` (${note})` : ""}\n`); }
+function w(group, name, note) { warn++; results.push({ group, name, status: "WARN", note: note || "" }); (JSON_MODE ? process.stderr : process.stdout).write(`  ⚠️ ${group}/${name}${note ? ` (${note})` : ""}\n`); }
 
 async function req(path, { method = "GET", body, headers = {} } = {}) {
   try {
@@ -51,8 +51,30 @@ const keccak = (d) => crypto.createHash("sha3-256").update(d).digest(); // Node 
 
 const PAYER = "0x" + crypto.randomBytes(20).toString("hex");
 
+// Synthesize a minimal valid input for a tool from its JSON Schema (required
+// props only, type-appropriate sample values). Used when the manifest ships no
+// example body. Returns undefined when the schema yields nothing.
+function synthInput(schema) {
+  if (!schema || typeof schema !== "object") return undefined;
+  const props = schema.properties || {};
+  const out = {};
+  for (const k of schema.required || []) {
+    const p = props[k] || {};
+    if (Array.isArray(p.enum) && p.enum.length) out[k] = p.enum[0];
+    else if (p.type === "string") out[k] = (p.format === "hex" || (typeof p.pattern === "string" && p.pattern.startsWith("^0x"))) ? "0x" + "ab".repeat(32) : "test";
+    else if (p.type === "integer") out[k] = 1;
+    else if (p.type === "number") out[k] = 1.5;
+    else if (p.type === "boolean") out[k] = false;
+    else if (p.type === "array") out[k] = [];
+    else if (p.type === "object") { const s = synthInput(p); if (s) out[k] = s; }
+    else out[k] = null;
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
 async function run() {
-  console.log(`\nx402 conformance runner → ${BASE}\n`);
+  // Header goes to stderr so --json mode stays clean machine-readable JSON on stdout.
+  process.stderr.write(`\nx402 conformance runner → ${BASE}\n\n`);
 
   // ============ GROUP 1: DISCOVERY ============
   const G1 = "DISCOVERY";
@@ -96,20 +118,41 @@ async function run() {
   const toolCount = health.b?.tools?.length ?? 0;
   t(G2, "at least 3 tools declared", toolCount >= 3, `found ${toolCount}`);
 
-  // Probe: does a tool call work (free tier) or return 402 (paid only)?
-  const probeTool = health.b?.tools?.[0] || "iban-check";
+  // Probe: can a caller actually execute a tool? Tools differ in input shape, so
+  // try the published tools in order with EACH tool's own example body (from the
+  // x402 manifest's Bazaar info) or an input synthesized from its mcp.json schema —
+  // a hardcoded iban body is only valid for iban-shaped tools.
+  const healthTools = (health.b?.tools || []).map((x) => (typeof x === "string" ? x : x?.name)).filter(Boolean);
+  const candidateTools = (healthTools.length ? healthTools : ["iban-check"]).slice(0, 4);
+  const mcpTools = mcpJson.b?.tools || [];
+  let probe = null, probeTool = candidateTools[0];
+  let receiptProbe = null; // first 200 whose body carries a top-level receipt
+  for (const tn of candidateTools) {
+    const res = (x402.b?.resources || []).find((r) => String(r.resource || "").includes(`/v1/tools/${tn}/call`));
+    const example = res?.extensions?.bazaar?.info?.input?.body;
+    const schema = mcpTools.find((m) => m.name === tn)?.inputSchema;
+    const body = { input: example && typeof example === "object" && !Array.isArray(example)
+      ? example
+      : (synthInput(schema) ?? { iban: "GB82 WEST 1234 5698 7654 32" }) };
+    const r = await req(`/v1/tools/${tn}/call`, { method: "POST", body });
+    if (probe === null && (r.s === 200 || r.s === 402)) { probe = r; probeTool = tn; }
+    if (r.s === 200 && r.b?.receipt !== undefined && receiptProbe === null) receiptProbe = r;
+    if (probe !== null && receiptProbe !== null) break;
+  }
   const probePath = `/v1/tools/${probeTool}/call`;
-  const probe = await req(probePath, { method: "POST", body: { input: { iban: "GB82 WEST 1234 5698 7654 32" } } });
 
-  if (probe.s === 200) {
-    t(G2, "free tier: tool call succeeds without payment", true);
-    t(G2, "free call: response has result field", probe.b?.result !== undefined);
-    t(G2, "free call: response has receipt (if XDR-1 server)", probe.b?.receipt !== undefined || !JSON.stringify(probe.b).includes("XDR-1"));
-  } else if (probe.s === 402) {
-    t(G2, "402 challenge returned when free tier exhausted", true);
+  if (probe?.s === 200) {
+    t(G2, "tool call succeeds without payment (free tier)", true, probeTool);
+    t(G2, "free call: response carries a tool result", probe.b?.result !== undefined || probe.b?.value !== undefined || probe.b?.ok !== undefined);
+    // Pass only when a receipt is actually MEASURED this run; a burned free tier
+    // (from earlier runs) or an unprobed receipt tool must never fabricate a fail.
+    if ((receiptProbe?.b ?? probe?.b)?.receipt !== undefined) t(G2, "free call: response has receipt (if XDR-1 server)", true, probeTool);
+    else s(G2, "free call: response has receipt (if XDR-1 server)", "no receipt-bearing free call this run");
+  } else if (probe?.s === 402) {
+    t(G2, "402 challenge returned when free tier exhausted", true, probeTool);
     t(G2, "402 challenge has payment requirements", !!probe.b?.accepts?.[0] || !!probe.b?.amount || !!probe.b?.price);
   } else {
-    t(G2, "tool call returns valid status (200 or 402)", false, `got ${probe.s}`);
+    t(G2, "tool call returns valid status (200 or 402)", false, `got ${probe?.s} (${probeTool})`);
   }
 
   // ============ GROUP 3: PAYMENT NEGATIVES ============
@@ -143,7 +186,7 @@ async function run() {
 
   // ============ GROUP 5: SECURITY ============
   const G5 = "SECURITY";
-  t(G5, "402 responses do not leak server internals", !JSON.stringify(probe.b ?? {}).includes("node_modules"));
+  t(G5, "402 responses do not leak server internals", !JSON.stringify(probe?.b ?? {}).includes("node_modules"));
   t(G5, "health does not expose secrets", !JSON.stringify(health.b ?? {}).match(/private|secret|password/i));
 
   // ============ GROUP 6: GOLDEN VECTORS (zero-dep crypto conformance) ============
@@ -167,8 +210,9 @@ async function run() {
       tamperRejected = recoverAddress(r0.expected.digest, flip(r0.expected.signature)).toLowerCase() !== r0.input.from.toLowerCase();
     } catch { tamperRejected = true; }
     t(G6, "tampered signature rejected", tamperRejected);
-    if (probe.s === 200 && probe.b?.receipt?.signature) {
-      const vr = verifyReceipt(probe.b.receipt);
+    const rc = receiptProbe ?? probe;
+    if (rc?.s === 200 && rc.b?.receipt?.signature) {
+      const vr = verifyReceipt(rc.b.receipt);
       t(G6, "live receipt verifies via reference verifier", vr.ok === true, JSON.stringify(vr));
       const published = mcpJson.b?.receipts?.receipt_signing_address;
       t(G6, "live receipt signer matches published address", !!published && vr.signer?.toLowerCase() === String(published).toLowerCase());
