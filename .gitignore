@@ -3,3 +3,7 @@ node_modules/
 sdk/typescript/node_modules/
 sdk/python/_vendor/
 sdk/python/__pycache__/
+
+# Private-lane artifacts must never enter this public repo
+sdk/typescript/a2alist-pay.mjs
+package-lock.json
