@@ -137,7 +137,13 @@ export function eip3009Digest(domain, auth) {
 // /.well-known/mcp.json ("keccak256 over `v|tool|...|tier`") and the reference
 // workers. (EIP-191 wrapping is reserved for wallet-binding attestations.)
 export function verifyReceipt(receipt) {
-  const canon = [receipt.v, receipt.tool, receipt.tool_version, receipt.input_hash, receipt.output_hash, receipt.payer, receipt.recipient, receipt.amount, receipt.nonce, receipt.ts, receipt.tier].join("|");
+  // Canonical form: v|tool|tool_version|input_hash|output_hash|payer|recipient|amount|nonce|ts|tier,
+  // with a trailing |successor|stream_state pair present ONLY when successor/stream_state is set
+  // (matches the live issuing rails; the pair's absence leaves the 11-field canon untouched).
+  const base = [receipt.v, receipt.tool, receipt.tool_version, receipt.input_hash, receipt.output_hash, receipt.payer, receipt.recipient, receipt.amount, receipt.nonce, receipt.ts, receipt.tier].join("|");
+  const canon = receipt.successor || receipt.stream_state
+    ? `${base}|${receipt.successor || ""}|${receipt.stream_state || "active"}`
+    : base;
   const digest = hex(keccak256(te.encode(canon)));
   const signer = recoverAddress(digest, receipt.signature);
   return { signer, ok: signer.toLowerCase() === String(receipt.signer).toLowerCase() };

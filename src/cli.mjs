@@ -2,6 +2,7 @@
 // x402-conformance CLI — thin wrapper.
 //   x402-conformance <baseURL> [--json]   measure a live x402 service
 //   x402-conformance dev                  local full-exchange replay (zero funds)
+//   x402-conformance verify <receipt>     verify any XDR-1 receipt (offline + free online endpoint)
 import { pathToFileURL } from "node:url";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -14,6 +15,11 @@ if (arg === "dev" || arg === "sandbox") {
   // Phase-1 "x402 dev": replay the full 402 -> sign -> retry -> receipt-verify
   // exchange locally against an embedded resource server. Zero funds, no deps.
   const r = spawnSync(process.execPath, [join(here, "sandbox.mjs")], { stdio: "inherit" });
+  process.exit(r.status ?? 1);
+}
+
+if (arg === "verify") {
+  const r = spawnSync(process.execPath, [join(here, "verify.mjs"), ...process.argv.slice(3)], { stdio: "inherit" });
   process.exit(r.status ?? 1);
 }
 

@@ -38,12 +38,15 @@ Score = passed checks / total. Every run prints a one-line verdict: `x402 CONFOR
 ## Also in this package
 
 - **`x402-reference-verifier`** — a zero-dependency reference verifier: from-scratch keccak256, bigint secp256k1 public-key recovery, EIP-3009 digest construction, and offline XDR-1 receipt verification. `node src/reference-verifier.mjs` runs an 11/11 self-test. Use it to verify any service's receipts without installing the ecosystem SDK.
+- **`x402-conformance verify <receipt>`** — verify ANY XDR-1 receipt two ways at once: offline recomputation plus the free stateless endpoint at `hcrb.in/v1/receipt/verify`. See `docs/verification.md`.
 - **`vectors/golden.json`** — golden EIP-3009 test vectors with real RFC-6979 deterministic signatures, digests, and derived `from` addresses (positive + negative: expired, wrong recipient, tampered signature).
 - **`schema/`** — JSON Schema for the 402 response body and the machine error taxonomy.
 - **`abnf/x402-headers.abnf`** — ABNF grammar for `X-PAYMENT`, `PAYMENT-REQUIRED`, `PAYMENT-OPTIONS`, `X-PAYMENT-RESPONSE`.
 - **`x402-sandbox`** — replays a full x402 exchange locally in milliseconds with zero funds: embedded server (real 402 challenge, voucher verification, single-use nonce ledger, signed receipt) + client. `npm run sandbox`.
 - **`docs/threat-model.md`** — replay, nonce reuse, signature malleability, facilitator trust. **No external audit has been performed** — stated, not implied.
 - **`docs/interop-matrix.md`** — client × server × facilitator cells, marked measured vs unmeasured.
+- **`docs/verification.md`** — the canonical receipt form + the offline/online verification paths.
+- **`docs/badge-program.md`** — how any x402 service earns the conformance badge, and what the mark does (and does not) claim.
 
 ## Clean-room client SDKs
 
