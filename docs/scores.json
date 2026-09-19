@@ -6,15 +6,15 @@
       "pass": 22,
       "fail": 0,
       "skip": 0,
-      "measured_at": "2026-09-19T10:55:35.390Z"
+      "measured_at": "2026-09-19T14:23:28.456Z"
     },
     {
       "label": "code402.dev",
       "score": "100/100",
-      "pass": 22,
+      "pass": 19,
       "fail": 0,
-      "skip": 0,
-      "measured_at": "2026-09-19T10:55:35.390Z"
+      "skip": 2,
+      "measured_at": "2026-09-19T14:23:28.456Z"
     }
   ]
 }
