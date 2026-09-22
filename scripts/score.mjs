@@ -18,7 +18,7 @@ function parse(file, label) {
 }
 
 const [railFile, code402File] = process.argv.slice(2);
-const results = [parse(railFile, "rail.akrivis.in"), parse(code402File, "code402.dev")];
+const results = [parse(railFile, "hcrb.in"), parse(code402File, "api.code402.dev")];
 
 fs.mkdirSync("docs", { recursive: true });
 fs.writeFileSync("docs/scores.json", JSON.stringify({ results }, null, 2) + "\n");
