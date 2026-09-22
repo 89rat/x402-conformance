@@ -1,20 +1,20 @@
 {
   "results": [
     {
-      "label": "rail.akrivis.in",
+      "label": "hcrb.in",
       "score": "100/100",
       "pass": 22,
       "fail": 0,
       "skip": 0,
-      "measured_at": "2026-09-22T15:22:14.172Z"
+      "measured_at": "2026-09-22T15:24:31.108Z"
     },
     {
-      "label": "code402.dev",
+      "label": "api.code402.dev",
       "score": "100/100",
       "pass": 22,
       "fail": 0,
       "skip": 0,
-      "measured_at": "2026-09-22T15:22:14.172Z"
+      "measured_at": "2026-09-22T15:24:31.109Z"
     }
   ]
 }
