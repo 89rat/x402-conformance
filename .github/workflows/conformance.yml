@@ -29,8 +29,8 @@ jobs:
 
       - name: Measure live x402 services
         run: |
-          node src/runner.mjs https://rail.akrivis.in | tee /tmp/rail.txt
-          node src/runner.mjs https://code402.dev | tee /tmp/code402.txt
+          node src/runner.mjs https://hcrb.in | tee /tmp/rail.txt
+          node src/runner.mjs https://api.code402.dev | tee /tmp/code402.txt
 
       - name: Write score badge
         run: node scripts/score.mjs /tmp/rail.txt /tmp/code402.txt
