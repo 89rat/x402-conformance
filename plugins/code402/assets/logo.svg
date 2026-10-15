@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" fill="none">
+  <defs>
+    <linearGradient id="c402-bg" x1="14" y1="14" x2="114" y2="114" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#1E293B"/>
+    </linearGradient>
+    <linearGradient id="c402-accent" x1="20" y1="20" x2="108" y2="108" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="50%" stop-color="#22D3EE"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+  </defs>
+  <!-- 10% margin baked in: 14..114 (100x100 square container) -->
+  <rect x="14" y="14" width="100" height="100" rx="22" fill="url(#c402-bg)" stroke="url(#c402-accent)" stroke-width="4"/>
+  <!-- Verification shield / clearinghouse node -->
+  <path d="M64 26L92 38V62C92 81.5 79.8 97.4 64 103C48.2 97.4 36 81.5 36 62V38L64 26Z" fill="#0B1120" stroke="url(#c402-accent)" stroke-width="3"/>
+  <!-- 402 text & cryptographic checkmark -->
+  <text x="64" y="61" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-weight="800" font-size="22" fill="#F8FAFC" letter-spacing="1">402</text>
+  <path d="M51 76L60 85L78 67" stroke="#10B981" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

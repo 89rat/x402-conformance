@@ -1,0 +1,8 @@
+{
+  "name": "code402",
+  "version": "1.0.0",
+  "description": "Autonomous non-custodial x402 clearinghouse, XDR-1 cryptographic receipt verification, ISO 20022 / IBAN / LEI deterministic validation, and executable x402 conformance suite.",
+  "author": {
+    "name": "Code402 / HCRB"
+  }
+}

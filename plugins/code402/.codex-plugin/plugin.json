@@ -1,0 +1,47 @@
+{
+  "name": "code402",
+  "version": "1.0.0",
+  "description": "Autonomous non-custodial x402 clearinghouse, XDR-1 cryptographic receipt verification, ISO 20022 / IBAN / LEI deterministic validation, and executable x402 conformance suite.",
+  "author": {
+    "name": "Code402 / HCRB",
+    "url": "https://hcrb.in"
+  },
+  "homepage": "https://github.com/89rat/x402-conformance/tree/main/plugins/code402",
+  "repository": "https://github.com/89rat/x402-conformance",
+  "license": "MIT",
+  "keywords": [
+    "x402",
+    "code402",
+    "eip-3009",
+    "usdc",
+    "iso-20022",
+    "iban",
+    "lei",
+    "receipt-verification"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Code402 / HCRB Clearinghouse",
+    "shortDescription": "x402 conformance, XDR-1 receipts & ISO 20022 validation",
+    "longDescription": "Equips coding agents with x402 EIP-3009 payment execution, offline and online XDR-1 cryptographic receipt verification, 19-check protocol conformance auditing, and 28 deterministic business-ID validators via the Code402 MCP rail.",
+    "developerName": "Code402 / HCRB",
+    "category": "Developer Tools",
+    "capabilities": [
+      "x402 protocol conformance auditing",
+      "XDR-1 cryptographic receipt verification",
+      "ISO 7064 Mod 97-10 IBAN & ISO 17442 LEI validation",
+      "EIP-3009 USDC machine-payable API execution"
+    ],
+    "websiteURL": "https://hcrb.in",
+    "supportURL": "https://github.com/89rat/x402-conformance/issues",
+    "privacyPolicyURL": "https://hcrb.in",
+    "termsOfServiceURL": "https://hcrb.in",
+    "defaultPrompt": [
+      "Audit an x402 endpoint for protocol conformance, 402 challenge shape, and XDR-1 receipt verification.",
+      "Deterministically validate an IBAN, LEI, BIC/SWIFT, or VAT identifier via the Code402 MCP server.",
+      "Verify an XDR-1 cryptographic settlement receipt offline and via hcrb.in/v1/receipt/verify."
+    ],
+    "logo": "./assets/logo.svg",
+    "composerIcon": "./assets/logo.svg"
+  }
+}

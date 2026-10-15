@@ -1,0 +1,17 @@
+{
+  "name": "code402-plugins",
+  "owner": {
+    "name": "Code402 / HCRB"
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "description": "Official Agent Plugins (1.0.0 spec) for x402 protocol conformance, XDR-1 cryptographic receipt verification, EIP-3009 machine-payable API execution, and deterministic ISO 20022 / IBAN / LEI validation."
+  },
+  "plugins": [
+    {
+      "name": "code402",
+      "source": "./plugins/code402",
+      "description": "Autonomous non-custodial x402 clearinghouse, XDR-1 cryptographic receipt verification, ISO 20022 / IBAN / LEI deterministic validation, and executable x402 conformance suite."
+    }
+  ]
+}

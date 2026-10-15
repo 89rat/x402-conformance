@@ -56,6 +56,28 @@ Three independently implemented paying-client SDKs — TypeScript, Python, Go �
 
 Five runtimes, one identical x402 pattern (≤30 logical lines, pinned deps), in [`examples/quickstarts/`](examples/quickstarts/): TypeScript/Express, Next.js Edge, Python/FastAPI, Go `net/http`, Rust/`workers-rs`.
 
+## Agent Plugin (Agent Plugins 1.0.0)
+
+This repository includes a portable [`code402` Agent Plugin](plugins/code402/) compliant with the [Agent Plugins 1.0.0 specification](https://agent-plugins.org/specification), bundling 4 skills (`x402-payer`, `x402-conformance-audit`, `x402-receipt-verification`, `iso20022-entity-validation`), routing rules, and the `code402-rail` MCP server (`https://hcrb.in/mcp`).
+
+### Antigravity CLI
+```bash
+agy plugin install https://github.com/89rat/x402-conformance/plugins/code402
+```
+
+### Claude Code
+```bash
+claude plugin marketplace add https://github.com/89rat/x402-conformance.git
+claude plugin install code402@code402-plugins
+```
+
+### OpenAI Codex CLI
+```bash
+codex plugin marketplace add https://github.com/89rat/x402-conformance.git
+codex plugin add code402@code402-plugins
+```
+
+
 ## Live scores
 
 The [conformance workflow](.github/workflows/conformance.yml) measures two production x402 services hourly and commits the results:

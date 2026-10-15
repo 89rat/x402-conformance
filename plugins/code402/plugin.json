@@ -1,0 +1,30 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "code402",
+  "displayName": "Code402 / HCRB Clearinghouse",
+  "version": "1.0.0",
+  "description": "Autonomous non-custodial x402 clearinghouse, XDR-1 cryptographic receipt verification, ISO 20022 / IBAN / LEI deterministic validation, and executable x402 conformance suite.",
+  "logo": "assets/logo.svg",
+  "author": {
+    "name": "Code402 / HCRB",
+    "url": "https://hcrb.in"
+  },
+  "homepage": "https://github.com/89rat/x402-conformance/tree/main/plugins/code402",
+  "repository": "https://github.com/89rat/x402-conformance",
+  "license": "MIT",
+  "keywords": [
+    "x402",
+    "code402",
+    "eip-3009",
+    "usdc",
+    "iso-20022",
+    "iban",
+    "lei",
+    "receipt-verification"
+  ],
+  "suggestedPrompts": [
+    "Audit an x402 endpoint for protocol conformance, 402 challenge shape, and XDR-1 receipt verification.",
+    "Deterministically validate an IBAN, LEI, BIC/SWIFT, or VAT identifier via the Code402 MCP server.",
+    "Verify an XDR-1 cryptographic settlement receipt offline and via hcrb.in/v1/receipt/verify."
+  ]
+}
