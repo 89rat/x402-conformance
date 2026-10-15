@@ -1,0 +1,45 @@
+{
+  "$schema": "https://agenticresourcediscovery.org/schemas/ai-catalog.schema.json",
+  "publisher": {
+    "name": "Code402 / HCRB",
+    "url": "https://hcrb.in"
+  },
+  "resources": [
+    {
+      "identifier": "urn:air:hcrb.in:plugin:code402",
+      "displayName": "Code402 / HCRB Clearinghouse Plugin",
+      "type": "application/agent-plugins+json",
+      "description": "Autonomous non-custodial x402 clearinghouse, XDR-1 cryptographic receipt verification, ISO 20022 / IBAN / LEI deterministic validation, and executable x402 conformance suite.",
+      "tags": [
+        "x402",
+        "code402",
+        "eip-3009",
+        "usdc",
+        "iso-20022",
+        "iban",
+        "lei",
+        "plugin",
+        "skills",
+        "mcp"
+      ],
+      "url": "https://raw.githubusercontent.com/89rat/x402-conformance/main/plugins/code402/plugin.json",
+      "updatedAt": "2026-10-15T16:15:00Z"
+    },
+    {
+      "identifier": "urn:air:hcrb.in:mcp:code402-rail",
+      "displayName": "Code402 / HCRB MCP Server",
+      "type": "application/mcp+json",
+      "description": "Streamable HTTP MCP server providing 28 deterministic business-identifier validation tools (IBAN, LEI, BIC/SWIFT, VAT) with signed XDR-1 receipts.",
+      "tags": [
+        "x402",
+        "mcp",
+        "iso-20022",
+        "iban",
+        "lei",
+        "validation"
+      ],
+      "url": "https://hcrb.in/.well-known/mcp.json",
+      "updatedAt": "2026-10-15T16:15:00Z"
+    }
+  ]
+}
