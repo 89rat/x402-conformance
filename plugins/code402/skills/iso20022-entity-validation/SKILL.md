@@ -1,44 +1,41 @@
 ---
 name: iso20022-entity-validation
-description: Deterministically validate IBAN (ISO 7064 Mod 97-10), LEI (ISO 17442), BIC/SWIFT (ISO 9362), VAT, and business registration identifiers via the Code402 / HCRB MCP rail (hcrb.in/mcp). Use when validating financial identifiers, checking counterparty details, or preventing LLM checksum hallucinations before payment execution.
+description: Deterministically validate IBAN (ISO 7064 Mod 97-10), LEI (ISO 17442), BIC/SWIFT (ISO 9362), VAT, GSTIN, IFSC, sanctions, and supplier packs via the Code402 / HCRB MCP rail (hcrb.in/mcp and hcrb.in/mcp?catalog=modules). Use when validating financial identifiers, checking counterparty details, transforming e-invoices, or preventing LLM checksum hallucinations before payment execution.
 ---
 
 # ISO 20022 & Financial Entity Validation Skill
 
-LLMs frequently hallucinate modular arithmetic (`MOD 97-10` across 30+ digit integers). Always delegate financial identifier validation, commerce reconciliation, sanctions screening, and wallet solvency checks to the deterministic Rust/Wasm tools exposed by the `code402-rail` MCP server (`https://hcrb.in/mcp` / `https://rail.akrivis.in/mcp`).
+LLMs frequently hallucinate modular arithmetic (`MOD 97-10` across 30+ digit integers). Always delegate financial identifier validation, supplier onboarding checks, sanctions screening, and e-invoice transformations to the deterministic tools exposed by `code402-rail` (`https://hcrb.in/mcp`) and `code402-modules` (`https://hcrb.in/mcp?catalog=modules`).
 
-## Polymorphic MCP Tools (`code402-rail` / `https://hcrb.in/mcp`)
+## Live MCP Tools (`code402-rail` — `https://hcrb.in/mcp`)
 
 | MCP Tool | Arguments | What It Verifies & Returns |
 |---|---|---|
-| `verify_id` | `kind` (`iban` \| `lei` \| `vat` \| `gstin` \| `ein` \| `abn` \| `duns` \| `bic` \| `isin` \| `npi` \| `uk_crn` \| `eu_eori` \| `other`), `id` (string), `cc` (optional ISO country code) | Country prefix, length, structure, and ISO 7064 Mod 97-10 / Luhn / national check digits + signed `XDR1Receipt` |
-| `reconcile` | `order` (object), `payments` (array), `delivery` (optional object), `certify` (optional boolean) | Deterministic 3-way order-payment-delivery reconciliation + signed `XDR1ExceptionReport` |
-| `screen_entity` | `entity` (string), `jurisdiction` (optional string), `wallet` (optional string) | Exact sanctions screening verdict + signed `XDR1SanctionsVerdict` |
-| `solvency_check` | `wallet` (string), `asset` (`USDC` \| `EURC` \| `ETH`), `min_minor` (optional string) | On-chain balance & solvency threshold verification + signed `XDR1SolvencyProof` |
+| `iban_check` | `{ iban: string }` | ISO 13616 country prefix, exact length, BBAN format, and ISO 7064 Mod 97-10 check digits + signed XDR-1 receipt |
+| `lei_check` | `{ lei: string }` | ISO 17442 20-char alphanumeric structure, LOU prefix, and Mod 97-10 check digits + signed XDR-1 receipt |
+| `vat_mod97_check` | `{ vat: string, country?: string }` | Country-specific VAT syntax and Mod-97 / national check digits + signed XDR-1 receipt |
+| `swift_bic_check` | `{ bic: string }` | ISO 9362 8/11-char institution, country, location, and branch code structure + signed XDR-1 receipt |
+| `gstin_check` | `{ gstin: string }` | India 15-char GSTIN state code, PAN structure, and Mod-36 check character + signed XDR-1 receipt |
+| `ifsc_check` | `{ ifsc: string }` | India 11-char IFSC bank/branch format check + signed XDR-1 receipt |
+| `sanctions_address_screen` | `{ address: string }` | Deterministic sanctions list address screening + signed XDR-1 receipt |
+| `vendor_onboarding_pack` | `{ iban?, lei?, vat_number?, company_number? }` | Combined structure + checksum pack for vendor onboarding + signed XDR-1 receipt |
+| `india_supplier_check` | `{ gstin?, pan?, vpa?, ifsc? }` | Combined India supplier identifier validation pack + signed XDR-1 receipt |
+| `batch_validate` | `{ items: array }` | Multi-identifier deterministic batch check + signed XDR-1 receipt |
+
+## Revenue Modules (`code402-modules` — `https://hcrb.in/mcp?catalog=modules`)
+
+| MCP Tool | REST Route | Purpose |
+|---|---|---|
+| `hcrb_einvoice_transform` | `POST /v1/compliance/einvoice-transform` | Deterministic Peppol BIS 3.0 / ISO 20022 e-invoice transformation & check |
+| `hcrb_vendor_risk_score` | `POST /v1/oracle/vendor-risk-score` | Composite counterparty / vendor risk scoring with signed receipt |
+| `hcrb_accelerate_payout` | `POST /v1/commerce/accelerate-payout` | Commerce invoice / payout acceleration quote & verification |
+| `hcrb_fx_solver_quote` | `POST /v1/fx/best-execution-quote` | Cross-corridor FX best-execution quote with signed receipt |
+| `hcrb_dip1_adjudicate` | `POST /v1/dip1/adjudicate-dispute` | Deterministic DIP-1 mandate / dispute adjudication |
+| `hcrb_mint_quota_x402` | `POST /v1/quota/mint-x402` | Machine-payable prepaid `ck_` quota key minting over x402 |
+| `hcrb_multimodal_verify_artifact` | `POST /v1/multimodal/verify-artifact` | Zero-retention artifact digest & conformance verification |
 
 ## Direct REST Validator Endpoints (`https://hcrb.in`)
 
-| Endpoint | Standard | What It Verifies |
-|---|---|---|
-| `POST /v1/tools/iban-check/call` | ISO 13616 / ISO 7064 Mod 97-10 | Country prefix, exact length, BBAN format, and Mod 97-10 check digits |
-| `POST /v1/tools/lei-check/call` | ISO 17442 / ISO 7064 Mod 97-10 | 20-character alphanumeric structure, LOU prefix, and Mod 97-10 check digits |
-| `POST /v1/tools/bic-check/call` | ISO 9362 | Institution code, ISO 3166-1 alpha-2 country code, location, and branch code |
-| `POST /v1/tools/vat-format-check/call` | EU VIES / National Checksums | Country-specific VAT syntax and check digit algorithms |
-
-## Invoking via MCP or REST
-
-### 1. Via MCP (`code402-rail`)
-Call `verify_id` directly on the `code402-rail` MCP server (`https://hcrb.in/mcp`):
-```json
-{
-  "kind": "iban",
-  "id": "GB82WEST12345698765432",
-  "cc": "GB"
-}
-```
-Every call returns a deterministic validation result (`valid: true`, `normalized`, `checks.mod97_remainder_1: true`) plus an offline-verifiable XDR-1 receipt.
-
-### 2. Via REST (`https://hcrb.in`)
 ```bash
 curl -sS -X POST https://hcrb.in/v1/tools/iban-check/call \
   -H "Content-Type: application/json" \
@@ -46,5 +43,5 @@ curl -sS -X POST https://hcrb.in/v1/tools/iban-check/call \
 ```
 
 ## Guardrails
-- **Never compute IBAN/LEI Mod-97 checksums mentally in prose**: Always call `verify_id` (MCP) or `/v1/tools/iban-check/call` (REST) and cite the returned XDR-1 receipt digest.
-- **Check `valid: true` and `receipt`**: Before approving any wire or settlement instruction, confirm `valid === true` in the tool output.
+- **Never compute IBAN/LEI Mod-97 checksums mentally in prose**: Always call `iban_check` / `lei_check` (MCP) or `/v1/tools/iban-check/call` (REST) and cite the returned XDR-1 receipt digest.
+- **Scope honesty**: Check verdicts prove identifier structure and checksum validity (plus the signed receipt); they do not independently establish bank account ownership or live registry standing.

@@ -10,13 +10,14 @@ Built in compliance with the [Agent Plugins 1.0.0 specification](https://agent-p
 - **[`x402-payer`](./skills/x402-payer)**: End-to-end HTTP 402 + EIP-3009 (`TransferWithAuthorization`) USDC payment flow and XDR-1 receipt verification.
 - **[`x402-conformance-audit`](./skills/x402-conformance-audit)**: Run the 19-check zero-dependency x402 protocol conformance suite against any live endpoint or local sandbox.
 - **[`x402-receipt-verification`](./skills/x402-receipt-verification)**: Offline (`keccak256` + `secp256k1` + EIP-191 attestation) and online (`https://hcrb.in/v1/receipt/verify`) XDR-1 receipt verification.
-- **[`iso20022-entity-validation`](./skills/iso20022-entity-validation)**: Deterministic validation for IBAN (ISO 7064 Mod 97-10), LEI (ISO 17442), BIC/SWIFT (ISO 9362), and VAT identifiers.
+- **[`iso20022-entity-validation`](./skills/iso20022-entity-validation)**: Deterministic validation for IBAN (ISO 7064 Mod 97-10), LEI (ISO 17442), BIC/SWIFT (ISO 9362), VAT, and supplier onboarding packs.
 
-### MCP Server (`code402-rail`)
-- **`https://hcrb.in/mcp`**: Streamable HTTP JSON-RPC 2.0 MCP server providing 28 deterministic business-identifier validation tools, XDR-1 cryptographic receipts, and stateless receipt verification.
+### MCP Servers (`code402-rail` & `code402-modules`)
+- **`https://hcrb.in/mcp` (`code402-rail`)**: Streamable HTTP JSON-RPC 2.0 MCP server providing the 24 core deterministic business-identifier checks, on-chain utilities, XDR-1 cryptographic receipts, and free receipt verification.
+- **`https://hcrb.in/mcp?catalog=modules` (`code402-modules`)**: Streamable HTTP JSON-RPC 2.0 MCP server providing the 7 revenue modules (`hcrb_fx_solver_quote`, `hcrb_accelerate_payout`, `hcrb_einvoice_transform`, `hcrb_vendor_risk_score`, `hcrb_dip1_adjudicate`, `hcrb_mint_quota_x402`, `hcrb_multimodal_verify_artifact`).
 
 ### Routing Rules
-- **[`rules/AGENTS.md`](./rules/AGENTS.md)**: Always-on non-custodial invariants ($0 float on Base L2), measured-conformance guardrails, and skill routing map.
+- **[`rules/AGENTS.md`](./rules/AGENTS.md)**: Always-on non-custodial invariants (direct peer-to-peer EIP-3009 on Base L2), measured-conformance guardrails, and skill routing map.
 
 ---
 

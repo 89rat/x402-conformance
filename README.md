@@ -58,7 +58,7 @@ Five runtimes, one identical x402 pattern (≤30 logical lines, pinned deps), in
 
 ## Agent Plugin (Agent Plugins 1.0.0)
 
-This repository includes a portable [`code402` Agent Plugin](plugins/code402/) compliant with the [Agent Plugins 1.0.0 specification](https://agent-plugins.org/specification), bundling 4 skills (`x402-payer`, `x402-conformance-audit`, `x402-receipt-verification`, `iso20022-entity-validation`), routing rules, and the `code402-rail` MCP server (`https://hcrb.in/mcp`).
+This repository includes a portable [`code402` Agent Plugin](plugins/code402/) compliant with the [Agent Plugins 1.0.0 specification](https://agent-plugins.org/specification), bundling 4 skills (`x402-payer`, `x402-conformance-audit`, `x402-receipt-verification`, `iso20022-entity-validation`), routing rules, and the `code402-rail` (`https://hcrb.in/mcp`, 24 core checks) + `code402-modules` (`https://hcrb.in/mcp?catalog=modules`, 7 revenue modules) MCP servers.
 
 ### Antigravity CLI
 ```bash

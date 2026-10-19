@@ -5,7 +5,7 @@ description: Verify XDR-1 cryptographic settlement receipts offline (keccak256 c
 
 # XDR-1 Cryptographic Receipt Verification
 
-Every tool execution on a compliant Code402 / HCRB rail returns an **XDR-1 receipt** and an **EIP-191 operator attestation**. Verification is **free forever** and requires zero trust in the operator when performed offline.
+Every tool execution on a compliant Code402 / HCRB rail returns an **XDR-1 receipt**. Verification is **free forever** and requires zero trust in the operator when performed offline.
 
 ## 1. Dual Verification via CLI
 
@@ -17,10 +17,11 @@ This performs two independent checks simultaneously:
 1. **Offline Cryptographic Recomputation**:
    - Constructs the canonical pipe-delimited string:
      `v|tool|tool_version|input_hash|output_hash|payer|recipient|amount|nonce|ts|tier`
+     (plus `|successor|stream_state` whenever either streaming field is present on the receipt)
    - Computes `keccak256(utf8(canonical))`
-   - Recovers the `secp256k1` public key and Ethereum address from `receipt.sig`
-   - Asserts recovered address equals `receipt.signer`
-   - Verifies the EIP-191 operator attestation signature (`authorization.attestation_sig`) over `authorization.attestation` matches `authorization.authorized_by`
+   - Recovers the `secp256k1` public key and Ethereum address from `receipt.signature` (or `receipt.sig`)
+   - Asserts recovered address equals `receipt.signer` (and matches `https://hcrb.in/.well-known/jwks.json`)
+   - When `authorization.attestation` is present, verifies the EIP-191 operator attestation signature (`authorization.attestation_sig`) matches `authorization.authorized_by`
 2. **Online Stateless Endpoint (`https://hcrb.in/v1/receipt/verify`)**:
    - Sends `POST https://hcrb.in/v1/receipt/verify` with the receipt payload (`$0` cost, unlimited, no API key).
 
@@ -29,7 +30,7 @@ This performs two independent checks simultaneously:
 ```bash
 curl -sS -X POST https://hcrb.in/v1/receipt/verify \
   -H "Content-Type: application/json" \
-  -d '{"receipt": { ... }, "authorization": { ... }}'
+  -d '{"receipt": { ... }}'
 ```
 
 ## 3. Invariants

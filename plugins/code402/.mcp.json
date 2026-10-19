@@ -4,6 +4,10 @@
     "code402-rail": {
       "type": "streamable-http",
       "url": "https://hcrb.in/mcp"
+    },
+    "code402-modules": {
+      "type": "streamable-http",
+      "url": "https://hcrb.in/mcp?catalog=modules"
     }
   }
 }

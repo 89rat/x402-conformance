@@ -1,7 +1,7 @@
 {
   "name": "code402",
-  "version": "1.0.0",
-  "description": "Autonomous non-custodial x402 clearinghouse, XDR-1 cryptographic receipt verification, ISO 20022 / IBAN / LEI deterministic validation, and executable x402 conformance suite.",
+  "version": "1.1.0",
+  "description": "Autonomous non-custodial x402 clearinghouse (24 core checks + 7 revenue modules), XDR-1 cryptographic receipt verification, ISO 20022 / IBAN / LEI deterministic validation, and executable x402 conformance suite.",
   "author": {
     "name": "Code402 / HCRB",
     "url": "https://hcrb.in"
@@ -23,7 +23,7 @@
   "interface": {
     "displayName": "Code402 / HCRB Clearinghouse",
     "shortDescription": "x402 conformance, XDR-1 receipts & ISO 20022 validation",
-    "longDescription": "Equips coding agents with x402 EIP-3009 payment execution, offline and online XDR-1 cryptographic receipt verification, 19-check protocol conformance auditing, and 28 deterministic business-ID validators via the Code402 MCP rail.",
+    "longDescription": "Equips coding agents with x402 EIP-3009 payment execution, offline and online XDR-1 cryptographic receipt verification, 19-check protocol conformance auditing, and 24 core deterministic checks + 7 revenue modules via the Code402 MCP rail.",
     "developerName": "Code402 / HCRB",
     "category": "Developer Tools",
     "capabilities": [

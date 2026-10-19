@@ -2,6 +2,9 @@
   "mcpServers": {
     "code402-rail": {
       "serverUrl": "https://hcrb.in/mcp"
+    },
+    "code402-modules": {
+      "serverUrl": "https://hcrb.in/mcp?catalog=modules"
     }
   }
 }
