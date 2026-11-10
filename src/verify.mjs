@@ -23,7 +23,9 @@ import { verifyReceipt } from "./reference-verifier.mjs";
 const DEFAULT_URL = process.env.VERIFY_URL || "https://hcrb.in/v1/receipt/verify";
 const args = process.argv.slice(2);
 const offlineOnly = args.includes("--offline");
-const rest = args.filter((a) => a !== "--offline");
+const expectIdx = args.indexOf("--expect-signer");
+const expectedSigner = expectIdx !== -1 ? args[expectIdx + 1] : undefined;
+const rest = args.filter((a, i) => a !== "--offline" && i !== expectIdx && i !== expectIdx + 1);
 const input = rest[0];
 
 function parseReceipt(raw) {
@@ -42,7 +44,7 @@ function verdictLine(ok, what) {
 
 const main = async () => {
   if (!input) {
-    console.error("usage: x402-conformance verify <receipt.json | inline-json | -> [--offline]");
+    console.error("usage: x402-conformance verify <receipt.json | inline-json | -> [--offline] [--expect-signer <address>]");
     process.exit(2);
   }
   let raw;
@@ -56,9 +58,11 @@ const main = async () => {
 
   // 1. Offline: recompute the digest and recover the signer locally.
   let offlineOk = false;
+  let selfConsistencyOnly = false;
   try {
-    const r = verifyReceipt(receipt);
+    const r = verifyReceipt(receipt, expectedSigner);
     offlineOk = r?.ok === true;
+    selfConsistencyOnly = r?.selfConsistencyOnly === true;
     verdictLine(offlineOk, `offline verification (digest recomputed, signer recovered${r && r.signer ? ", signer " + r.signer : ""})`);
   } catch (e) {
     verdictLine(false, `offline verification (error: ${e.message})`);
@@ -86,7 +90,12 @@ const main = async () => {
   }
 
   const ok = offlineOk && (offlineOnly || onlineOk === true);
-  console.log(ok ? "\nVERDICT: VALID — signed XDR-1 receipt, verifiable offline." : "\nVERDICT: NOT VERIFIED — do not treat this receipt as proof.");
+  if (ok && selfConsistencyOnly) {
+    console.log("\nVERDICT: SELF-CONSISTENT ONLY - signature matches the signer field the receipt itself carries.");
+    console.log("This does NOT prove who signed it. Pass --expect-signer <address> to check against a facilitator address from outside the receipt.");
+  } else {
+    console.log(ok ? "\nVERDICT: VALID - signed XDR-1 receipt, verifiable offline and matched against the expected signer." : "\nVERDICT: NOT VERIFIED - do not treat this receipt as proof.");
+  }
   process.exit(ok ? 0 : 1);
 };
 

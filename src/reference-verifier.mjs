@@ -136,7 +136,17 @@ export function eip3009Digest(domain, auth) {
 // EIP-191-wrapped. This matches the canonical published in the services'
 // /.well-known/mcp.json ("keccak256 over `v|tool|...|tier`") and the reference
 // workers. (EIP-191 wrapping is reserved for wallet-binding attestations.)
-export function verifyReceipt(receipt) {
+//
+// `receipt.signer` is a field INSIDE the receipt, so it is exactly as trustworthy
+// as the rest of the payload: an attacker who signs their own fabricated receipt
+// simply writes their own address into that field too, and the check below passed
+// that as `ok: true` with no caller input at all. Without `expectedSigner`, this
+// function can only prove the signature is self-consistent with the signer field
+// the receipt itself carries, never that the named signer is a real facilitator.
+// Pass `expectedSigner` (the facilitator address from a source OUTSIDE the
+// receipt: config, a prior `/supported` call, a pinned list) to check identity,
+// not just internal consistency.
+export function verifyReceipt(receipt, expectedSigner) {
   // Canonical form: v|tool|tool_version|input_hash|output_hash|payer|recipient|amount|nonce|ts|tier,
   // with a trailing |successor|stream_state pair present ONLY when successor/stream_state is set
   // (matches the live issuing rails; the pair's absence leaves the 11-field canon untouched).
@@ -146,7 +156,12 @@ export function verifyReceipt(receipt) {
     : base;
   const digest = hex(keccak256(te.encode(canon)));
   const signer = recoverAddress(digest, receipt.signature);
-  return { signer, ok: signer.toLowerCase() === String(receipt.signer).toLowerCase() };
+  const target = expectedSigner ?? receipt.signer;
+  return {
+    signer,
+    ok: signer.toLowerCase() === String(target).toLowerCase(),
+    selfConsistencyOnly: expectedSigner === undefined,
+  };
 }
 
 // ---------- self-test ----------
@@ -170,6 +185,32 @@ if (isMain) {
     try { differs = recoverAddress(d, tampered) !== v.input.from.toLowerCase(); } catch { differs = true; }
     t(`${v.id} tampered signature rejected`, differs);
   }
+  // verifyReceipt: without expectedSigner this only proves the signature matches
+  // whatever the receipt itself claims as signer, never who actually signed it.
+  {
+    const receipt = {
+      v: "XDR-1", tool: "t", tool_version: "1", input_hash: "0xaa", output_hash: "0xbb",
+      payer: "0xcc", recipient: "0xdd", amount: "1", nonce: "0xee", ts: 1700000000, tier: "free",
+      signature: "0x76d2fdf1302d1fa9556f4df94ec84cefba6d482e54f47c6c2a238c1baa560f0eae1135fd6e86b075237b7480b1187ed981a2065694f2be181ce78ea4b5f6ce131b",
+    };
+    // In this test the signature was made with a throwaway key, standing in for an
+    // attacker. 0x6c62... is simply whatever that key's signature recovers to; a
+    // real caller would compare against a facilitator address known from outside
+    // the receipt, not reuse this value.
+    const recoveredFromSignature = "0x6c6258a0d565e09cbacf549ceac7264a7c00585d";
+    const forged = { ...receipt, signer: recoveredFromSignature };
+    const r1 = verifyReceipt(forged);
+    t("forged receipt: self-consistency alone reports ok (documented limitation)", r1.ok === true);
+    t("forged receipt: selfConsistencyOnly flag is set so callers can tell", r1.selfConsistencyOnly === true);
+
+    const r2 = verifyReceipt(forged, "0x1111111111111111111111111111111111111111");
+    t("expectedSigner rejects a receipt signed by someone else", r2.ok === false);
+
+    const r3 = verifyReceipt(forged, recoveredFromSignature);
+    t("expectedSigner accepts a receipt actually signed by the expected address", r3.ok === true);
+    t("expectedSigner path clears selfConsistencyOnly", r3.selfConsistencyOnly === false);
+  }
+
   console.log(`\n${pass}/${pass + fail} self-tests passed`);
   process.exit(fail ? 1 : 0);
 }
