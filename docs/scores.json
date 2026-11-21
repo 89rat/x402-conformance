@@ -6,7 +6,7 @@
       "pass": 20,
       "fail": 2,
       "skip": 0,
-      "measured_at": "2026-11-20T20:11:23.670Z"
+      "measured_at": "2026-11-21T01:29:38.119Z"
     },
     {
       "label": "api.code402.dev",
@@ -14,7 +14,7 @@
       "pass": 20,
       "fail": 2,
       "skip": 0,
-      "measured_at": "2026-11-20T20:11:23.670Z"
+      "measured_at": "2026-11-21T01:29:38.119Z"
     }
   ]
 }
