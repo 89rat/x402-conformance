@@ -12,7 +12,7 @@ import crypto from "node:crypto";
 import { readFileSync } from "node:fs";
 import { eip3009Digest, recoverAddress, verifyReceipt } from "./reference-verifier.mjs";
 
-const BASE = process.argv[2] || "https://rail.akrivis.in";
+const BASE = process.argv[2] || "https://hcrb.in";
 const JSON_MODE = process.argv.includes("--json");
 
 let pass = 0, fail = 0, skip = 0, warn = 0;

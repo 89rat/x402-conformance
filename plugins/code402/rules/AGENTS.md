@@ -4,7 +4,7 @@
 - **Non-Custodial Invariant**: Strictly $0 custodial float on Base L2. All settlements are direct peer-to-peer EIP-3009 `TransferWithAuthorization` vouchers in USDC (`0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`, chain 8453).
 - **Receipt Verification is Free Forever**: `receipt_verify` (`https://hcrb.in/v1/receipt/verify`) is stateless, offline-recomputable (XDR-1 canonical digest + `secp256k1` signer recovery + EIP-191 operator attestation), and free forever.
 - **Measured vs. Unmeasured**: Never claim an x402 endpoint passes conformance unless the executable runner (`npx github:89rat/x402-conformance`) exercised the check and recorded `pass`.
-- **Working Domains**: Use `https://hcrb.in` and `https://rail.akrivis.in` for live MCP and REST interactions.
+- **Working Domains**: Use `https://hcrb.in` and `https://code402.dev` for live MCP and REST interactions.
 
 ## Skill Routing Map
 When handling tasks related to x402 payments, conformance auditing, receipt verification, or financial identifier validation, load the corresponding bundled skill:

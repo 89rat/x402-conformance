@@ -30,4 +30,4 @@ Configuration (all runtimes): `PAY_TO` (your wallet), `FACILITATOR_URL`
 Verify any implementation against the suite:
 `npx github:89rat/x402-conformance <your-url>`
 
-Reference deployments (live, 28 tools each): https://code402.dev · https://rail.akrivis.in
+Reference deployments (live, 58 MCP tools): https://code402.dev · https://hcrb.in

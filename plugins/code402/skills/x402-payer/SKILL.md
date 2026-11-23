@@ -1,6 +1,6 @@
 ---
 name: x402-payer
-description: Pay for machine-payable API calls with USDC via x402 (HTTP 402 + EIP-3009) — no accounts, no API keys. Use when an agent needs to call a paid x402 endpoint such as hcrb.in or rail.akrivis.in (24 deterministic checks + 7 revenue modules), handle a 402 challenge, sign the voucher, and verify the signed receipt.
+description: Pay for machine-payable API calls with USDC via x402 (HTTP 402 + EIP-3009) — no accounts, no API keys. Use when an agent needs to call a paid x402 endpoint such as hcrb.in (58 deterministic checks + 7 revenue modules), handle a 402 challenge, sign the voucher, and verify the signed receipt.
 ---
 
 # x402 Payer
@@ -10,19 +10,19 @@ How an autonomous agent pays for a tool call with USDC on Base — no human, no 
 ## When to use
 
 - An endpoint returns **HTTP 402** with an `accepts[]` payment challenge
-- You need to call a paid x402 tool (e.g. `hcrb.in` / `rail.akrivis.in` 24 core checks or 7 revenue modules)
+- You need to call a paid x402 tool (e.g. `hcrb.in` core checks or 7 revenue modules)
 - You need to **verify the signed receipt** proving a paid call happened
 
 ## Reference rail: Code402 / HCRB (live, Base mainnet)
 
 | Fact | Value |
 |---|---|
-| Core MCP endpoint (`24` tools) | `https://hcrb.in/mcp` and `https://rail.akrivis.in/mcp` (JSON-RPC 2.0) |
+| Core MCP endpoint (`58` tools) | `https://hcrb.in/mcp` and `https://rail.hcrb.in/mcp` (Streamable HTTP, JSON-RPC 2.0) |
 | Modules MCP endpoint (`7` modules) | `https://hcrb.in/mcp?catalog=modules` |
 | Manifests | `https://hcrb.in/.well-known/mcp.json` and `https://hcrb.in/.well-known/mcp.json?catalog=modules` |
 | Agent reference & evaluation paths | `https://hcrb.in/llms.txt` (`https://hcrb.in/llms-full.txt`) |
-| Free tier | 5 free calls/day per client on eligible tools — evaluate first, pay per call when needed |
-| Pricing | Every paid call quotes its live price in the HTTP 402 challenge (`accepts[0]`, typically `$0.005–$0.02` USDC on Base) |
+| Sandbox | Published synthetic test fixtures run free without a wallet (`receipt_verify` free forever) |
+| Pricing | Every paid call quotes its live price in the HTTP 402 challenge (`accepts[0]`, `$0.01 USDC` single-check floor on Base) |
 | Asset | USDC `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`, EIP-712 domain name `USD Coin`, version `2`, chain 8453 |
 | Receipt | XDR-1, secp256k1; signer published in the manifest; offline-verifiable (`https://hcrb.in/v1/receipt/verify` is free forever) |
 
